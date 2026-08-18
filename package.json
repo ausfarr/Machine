@@ -9,7 +9,8 @@
     "test": "vitest run",
     "validate:manifest": "tsx scripts/validate-manifest.ts",
     "scout": "tsx agents/scout/cli.ts",
-    "loom": "tsx agents/loom/cli.ts"
+    "loom": "tsx agents/loom/cli.ts",
+    "bindery": "tsx agents/bindery/cli.ts"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",
