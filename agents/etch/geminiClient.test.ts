@@ -1,36 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { interpretGenerateImagesResponse, isRetryableApiError } from "./geminiClient.ts";
+import { interpretGenerateContentResponse, isRetryableApiError } from "./geminiClient.ts";
 
-describe("interpretGenerateImagesResponse", () => {
-  it("returns the image data when Imagen includes generated image bytes", () => {
-    const result = interpretGenerateImagesResponse({
-      generatedImages: [{ image: { imageBytes: "abc123" } }],
+describe("interpretGenerateContentResponse", () => {
+  it("returns the image data when Gemini includes an inline image part", () => {
+    const result = interpretGenerateContentResponse({
+      candidates: [{ content: { parts: [{ inlineData: { data: "abc123" } }] } }],
     });
     expect(result.imageBase64).toBe("abc123");
   });
 
-  it("flags a raiFilteredReason as a definite refusal, not a transient error", () => {
-    // Regression test: the general-purpose chat model (generateContent) could
-    // respond with prose instead of an image ("Here are your whimsical
-    // cottagecore mushroom cottages..."); generateImages's response type has
-    // no text field, so that failure mode can't happen here at all — the
-    // only "declined" shape is a filtered result with a reason attached.
-    const result = interpretGenerateImagesResponse({
-      generatedImages: [{ raiFilteredReason: "Blocked due to safety guidelines." }],
+  it("flags a prompt-level blockReason as a definite refusal, not a transient error", () => {
+    const result = interpretGenerateContentResponse({
+      promptFeedback: { blockReason: "SAFETY" },
     });
     expect(result.imageBase64).toBeUndefined();
     expect(result.isDefiniteRefusal).toBe(true);
-    expect(result.diagnostic).toMatch(/raiFilteredReason=Blocked due to safety guidelines\./);
+    expect(result.diagnostic).toMatch(/blockReason=SAFETY/);
+  });
+
+  it("flags a SAFETY finishReason as a definite refusal", () => {
+    const result = interpretGenerateContentResponse({
+      candidates: [{ content: { parts: [] }, finishReason: "SAFETY" }],
+    });
+    expect(result.imageBase64).toBeUndefined();
+    expect(result.isDefiniteRefusal).toBe(true);
+    expect(result.diagnostic).toMatch(/finishReason=SAFETY/);
+  });
+
+  it("captures prose text as a diagnostic when the model describes instead of draws the image", () => {
+    // Regression case: unlike the old Imagen-only generateImages endpoint
+    // (whose response type had no text field at all), generateContent can
+    // legitimately respond with prose instead of an image. That must be
+    // surfaced as a readable diagnostic, not swallowed as "no info".
+    const result = interpretGenerateContentResponse({
+      candidates: [
+        { content: { parts: [{ text: "Here are your whimsical cottagecore mushroom cottages..." }] } },
+      ],
+    });
+    expect(result.imageBase64).toBeUndefined();
+    expect(result.isDefiniteRefusal).toBe(false);
+    expect(result.diagnostic).toMatch(/text="Here are your whimsical cottagecore mushroom cottages\.\.\."/);
   });
 
   it("treats a genuinely empty response with no signal as a transient (retryable) case", () => {
-    const result = interpretGenerateImagesResponse({ generatedImages: [] });
+    const result = interpretGenerateContentResponse({ candidates: [{ content: { parts: [] } }] });
     expect(result.isDefiniteRefusal).toBe(false);
     expect(result.diagnostic).toMatch(/transient API issue/);
   });
 
-  it("treats a response with no generatedImages field at all as transient", () => {
-    const result = interpretGenerateImagesResponse({});
+  it("treats a response with no candidates field at all as transient", () => {
+    const result = interpretGenerateContentResponse({});
     expect(result.isDefiniteRefusal).toBe(false);
   });
 });

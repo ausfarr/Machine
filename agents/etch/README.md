@@ -24,17 +24,26 @@ resized to Bindery's minimum print resolution (2550x3300px, 300 DPI at
 
 ## Which API call, and why
 
-Etch calls Gemini's dedicated **Imagen** image-generation endpoint
-(`models.generateImages`, default model `imagen-3.0-generate-002`), not
-the general-purpose multimodal chat endpoint (`models.generateContent`,
-the model behind e.g. `gemini-2.5-flash-image`). A chat-style model is
-free to respond with text instead of an image — in practice it
-occasionally just describes the image in prose ("Here are your whimsical
-cottagecore mushroom cottages...") rather than drawing it, which reads to
-Etch as "no image data" for no diagnosable reason. `generateImages`'s
-response type has no text field at all, so that failure mode is
-structurally impossible here, not just less likely. Override the model
-via `GEMINI_MODEL` if a newer Imagen version becomes available.
+Etch calls Gemini's multimodal `models.generateContent` endpoint
+(default model `gemini-3.1-flash-image`, part of the Gemini 3.x image
+family Google markets as "Nano Banana"), requesting
+`responseModalities: [IMAGE, TEXT]`.
+
+This used to go through Imagen's dedicated `models.generateImages`
+(`predict`) endpoint instead, specifically because a chat-style model is
+free to respond with text instead of an image — in practice it can just
+describe the image in prose ("Here are your whimsical cottagecore
+mushroom cottages...") rather than drawing it, which otherwise reads as
+"no image data" for no diagnosable reason. That's no longer a choice:
+Google fully retired every Imagen model version (`generateImages`/
+`predict` now 404s for all of them), so `generateContent` is the only
+image-generation path the Gemini API still offers. Requesting TEXT
+alongside IMAGE means that when the model does respond with prose instead
+of drawing, the response carries that text as a diagnosable reason rather
+than an unexplained empty result. Override the model via `GEMINI_MODEL`
+(e.g. `gemini-3-pro-image-preview` for higher prompt fidelity at higher
+cost/latency, if the default's line-art quality isn't good enough for a
+given batch).
 
 If any single image fails to generate, Etch throws immediately and leaves
 the manifest at stage `prompted` rather than claiming the batch reached
@@ -42,18 +51,20 @@ the manifest at stage `prompted` rather than claiming the batch reached
 fabricated data" guardrails. Two distinct kinds of failure are handled
 differently:
 
-- **A response with no image, but a diagnosable reason** — Imagen's own
-  responsible-AI filter (`raiFilteredReason`) declining the prompt, most
-  often because it describes something sensitive (e.g. a theme phrased
-  around a vulnerable population, like "for anxious kids"). Not retried,
-  since asking again with the identical prompt won't change the outcome;
-  the thrown error includes the diagnostic so the prompt can be reworded.
+- **A response with no image, but a diagnosable reason** — a prompt-level
+  `blockReason`, a refusal `finishReason` (`SAFETY`, `PROHIBITED_CONTENT`,
+  `BLOCKLIST`, `SPII`, `RECITATION`), or prose text instead of image
+  bytes. Most often this means the prompt describes something sensitive
+  (e.g. a theme phrased around a vulnerable population, like "for anxious
+  kids"). Not retried, since asking again with the identical prompt won't
+  change the outcome; the thrown error includes the diagnostic so the
+  prompt can be reworded.
 - **An HTTP-level failure from the API call itself** (a 5xx server error
   or a 429 rate limit — e.g. "got status: 503 ... Deadline expired before
   operation could complete") — retried up to 3 attempts total with
   backoff, since these are transient. A 4xx client error (bad request,
-  auth failure) is not retried, since it would fail identically every
-  time.
+  auth failure, unknown/retired model) is not retried, since it would
+  fail identically every time.
 
 Either way, once retries are exhausted the thrown error names the actual
 cause. Re-run Etch once the underlying problem (a prompt that needs
