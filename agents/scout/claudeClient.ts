@@ -30,6 +30,8 @@ export interface ThemeSelection {
 }
 
 export interface ClaudeClient {
+  /** Proposes fresh candidate themes so the pipeline never depends on a human having pre-populated theme-queue.json. */
+  generateCandidateThemes(count: number, avoidThemes: string[]): Promise<string[]>;
   /** Ranks every candidate and picks the one to pursue next. */
   selectTheme(candidates: string[]): Promise<ThemeSelection>;
   /** Deep-dives the selected theme for the research report. */
@@ -53,6 +55,45 @@ export class AnthropicClaudeClient implements ClaudeClient {
   constructor(options: { apiKey?: string; model?: string } = {}) {
     this.client = new Anthropic({ apiKey: options.apiKey ?? requireApiKey() });
     this.model = options.model ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
+  }
+
+  async generateCandidateThemes(count: number, avoidThemes: string[]): Promise<string[]> {
+    const tool = {
+      name: "report_candidate_themes",
+      description: "Report a list of candidate coloring-book theme ideas.",
+      input_schema: {
+        type: "object" as const,
+        properties: {
+          themes: {
+            type: "array",
+            items: { type: "string" },
+            description: `Exactly ${count} distinct candidate theme strings.`,
+          },
+        },
+        required: ["themes"],
+      },
+    };
+
+    const avoidClause =
+      avoidThemes.length > 0
+        ? ` Do not repeat, and prefer to avoid close variants of, these already-produced themes: ${avoidThemes.join(", ")}.`
+        : "";
+
+    const message = await this.client.messages.create({
+      model: this.model,
+      max_tokens: 1024,
+      tools: [tool],
+      tool_choice: { type: "tool", name: tool.name },
+      messages: [
+        {
+          role: "user",
+          content: `You are Scout, the niche/keyword research step of a coloring-book publishing pipeline sold on Amazon KDP. Propose ${count} distinct, evergreen coloring-book theme ideas worth researching next. Prefer specific, differentiated angles (a style, audience, or motif) over generic broad nouns that are likely saturated.${avoidClause}`,
+        },
+      ],
+    });
+
+    const result = parseToolResult<{ themes: string[] }>(message, tool.name);
+    return result.themes;
   }
 
   async selectTheme(candidates: string[]): Promise<ThemeSelection> {

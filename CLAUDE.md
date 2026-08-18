@@ -45,9 +45,9 @@ paid API. Adding one to another agent requires updating this section first.
 Each agent is a self-contained script with one job.
 
 ### Scout — niche & keyword research + theme selection
-- Input: the pool of candidate themes in `theme-queue.json`
+- Input: candidate themes Scout proposes itself via the Anthropic API, blended with any human-suggested entries in `theme-queue.json` (optional — a way to make sure a specific idea gets considered, not a required gate)
 - Output: a research report (`.json` + `.md`) on the theme it selects — competition assessment, suggested angle, keyword variants — plus the Claude-generated rationale for why that theme was chosen over the other candidates
-- Uses the Anthropic API to both analyze candidates and pick one; this is an automated decision, not a human one. The report explicitly discloses it's an LLM's estimate, not live Amazon/Google search-volume data.
+- Uses the Anthropic API to generate candidates, analyze them, and pick one; this is an automated decision end to end, not a human one. The report explicitly discloses it's an LLM's estimate, not live Amazon/Google search-volume data. Candidate generation avoids repeating themes already produced by an existing batch.
 
 ### Loom — prompt generation
 - Input: the theme Scout selected
@@ -77,7 +77,7 @@ Each agent is a self-contained script with one job.
 ## Data flow
 
 ```
-Scout (Claude API: research + auto-select theme from theme-queue.json)
+Scout (Claude API: generate + research + auto-select a theme; theme-queue.json optionally seeds candidates)
   → Loom → prompt batch
   → Etch (Gemini API: generate images from prompts) → /batches/{id}/images/
   → Bindery + Crier → interior PDF + listing copy

@@ -8,6 +8,9 @@ function fakeClient(selection: ThemeSelection): ClaudeClient {
     analyzeTheme: async () => {
       throw new Error("not used in these tests");
     },
+    generateCandidateThemes: async () => {
+      throw new Error("not used in these tests");
+    },
   };
 }
 

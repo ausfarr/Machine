@@ -43,21 +43,23 @@ npm run bindery -- <batch-id>        # assemble the interior PDF (images from Et
 npm run crier -- <batch-id>          # generate listing copy for an assembled batch
 npm run ledger                       # refresh dashboard/public/status.json
 
-npm run process-queue                # run the full pipeline end to end on one auto-selected queued theme
+npm run process-queue                # run the full pipeline end to end on one auto-selected theme
 ```
 
-## The theme queue
+## The theme queue (optional)
 
 `theme-queue.json` (repo root) is a plain JSON array of candidate theme
-strings — starts empty, and stays empty until a human adds candidates to
-it. Adding themes here doesn't pick one; Scout does that automatically
-via the Anthropic API when the weekly `pipeline.yml` workflow (or
-`npm run process-queue`) runs.
+strings — it starts empty and can stay empty. Scout proposes its own
+fresh candidate themes via the Anthropic API on every run (avoiding
+themes already produced), so the pipeline never depends on a human
+seeding it. Add a theme here only if you want to make sure a specific
+idea gets considered alongside Scout's own — Scout still ranks it against
+everything else and may or may not pick it.
 
 ## Pipeline data flow
 
 ```
-Scout (Claude API: research + auto-select theme from theme-queue.json)
+Scout (Claude API: generate + research + auto-select a theme; theme-queue.json optionally seeds candidates)
   → Loom → prompt batch
   → Etch (Gemini API: generate images from prompts) → /batches/{id}/images/
   → Bindery + Crier → interior PDF + listing copy
