@@ -1,12 +1,24 @@
-import { generateKeywordVariants } from "../scout/heuristics.ts";
-
 /**
  * Crier has no live Amazon category-tree or keyword-research API — same
- * constraint as Scout and Loom, nothing is authorized in CLAUDE.md. So
- * listing copy is built from data already produced earlier in the
- * pipeline (theme, suggested angle, page count) plus a couple of generic,
- * real KDP category names, not invented market data.
+ * constraint as Loom, nothing is authorized in CLAUDE.md. So listing copy
+ * is built from data already produced earlier in the pipeline (theme,
+ * suggested angle, page count) plus a couple of generic, real KDP
+ * category names, not invented market data.
  */
+
+/** Deterministic keyword-phrase variants derived from the theme text itself. */
+function generateKeywordVariants(theme: string): string[] {
+  const t = theme.trim();
+  const variants = [
+    `${t} coloring book`,
+    `${t} coloring pages`,
+    `adult ${t} coloring book`,
+    `${t} coloring book for kids`,
+    `easy ${t} coloring book`,
+    `detailed ${t} coloring pages`,
+  ];
+  return Array.from(new Set(variants.map((v) => v.trim())));
+}
 
 export const MAX_KEYWORD_LENGTH = 50;
 

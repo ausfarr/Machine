@@ -8,12 +8,11 @@ if (!theme) {
 }
 
 try {
-  const result = runScout(theme);
+  const result = await runScout(theme);
   console.log(`Scout: created batch "${result.batchId}" at stage "researched"`);
   console.log(`  ${result.researchJsonPath}`);
   console.log(`  ${result.researchMdPath}`);
   console.log(`  ${result.batchDir}/manifest.json`);
-  console.log("A human should review the report before greenlighting this theme for Loom.");
 } catch (err) {
   console.error("Scout failed:", err instanceof Error ? err.message : err);
   process.exit(1);

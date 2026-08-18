@@ -7,6 +7,7 @@ import { writeValidTestImages } from "../bindery/testFixtures.ts";
 import { runBindery } from "../bindery/index.ts";
 import { runLoom } from "../loom/index.ts";
 import { runScout } from "../scout/index.ts";
+import { fakeClaudeClient } from "../scout/testFixtures.ts";
 import { runCrier } from "./index.ts";
 
 let tempDir: string | undefined;
@@ -19,7 +20,7 @@ afterEach(() => {
 });
 
 async function scoutLoomBindery(batchesDir: string, promptCount = 20) {
-  const scouted = runScout("Fantasy Castles", { batchesDir });
+  const scouted = await runScout("Fantasy Castles", { batchesDir, claudeClient: fakeClaudeClient() });
   runLoom(scouted.batchId, { batchesDir, promptCount });
   await writeValidTestImages(join(batchesDir, scouted.batchId, "images"), promptCount);
   await runBindery(scouted.batchId, { batchesDir });
@@ -46,9 +47,9 @@ describe("runCrier", () => {
     expect(listing.categories.length).toBeGreaterThan(0);
   });
 
-  it("refuses to run on a batch that isn't at stage assembled", () => {
+  it("refuses to run on a batch that isn't at stage assembled", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "crier-e2e-"));
-    const scouted = runScout("Fantasy Castles", { batchesDir: tempDir });
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
     expect(() => runCrier(scouted.batchId, { batchesDir: tempDir })).toThrow(/requires stage "assembled"/);
   });
 

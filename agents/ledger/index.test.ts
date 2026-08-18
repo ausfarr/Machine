@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { runScout } from "../scout/index.ts";
+import { fakeClaudeClient } from "../scout/testFixtures.ts";
 import { runLoom } from "../loom/index.ts";
 import { runLedger } from "./index.ts";
 
@@ -31,13 +32,13 @@ describe("runLedger", () => {
     expect(written.summary.totalBatches).toBe(0);
   });
 
-  it("reflects real batch stages from actual manifests", () => {
+  it("reflects real batch stages from actual manifests", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "ledger-test-"));
     const batchesDir = join(tempDir, "batches");
     const outputPath = join(tempDir, "status.json");
 
-    const researched = runScout("Fantasy Castles", { batchesDir });
-    const prompted = runScout("Cozy Cabins", { batchesDir });
+    const researched = await runScout("Fantasy Castles", { batchesDir, claudeClient: fakeClaudeClient() });
+    const prompted = await runScout("Cozy Cabins", { batchesDir, claudeClient: fakeClaudeClient() });
     runLoom(prompted.batchId, { batchesDir });
 
     const status = runLedger({ batchesDir, outputPath });

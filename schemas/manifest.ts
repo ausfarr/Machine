@@ -24,6 +24,8 @@ export const ScoutResultSchema = z.object({
   reportMdPath: z.string(),
   competitionLevel: z.enum(["low", "medium", "high"]),
   suggestedAngle: z.string(),
+  /** Set when this theme was auto-selected from theme-queue.json rather than run directly on a single theme. */
+  selectionRationale: z.string().optional(),
   completedAt: isoTimestamp,
 });
 export type ScoutResult = z.infer<typeof ScoutResultSchema>;
@@ -38,11 +40,12 @@ export const LoomResultSchema = z.object({
 });
 export type LoomResult = z.infer<typeof LoomResultSchema>;
 
-/** Set once a human has dropped final images into batches/{id}/images/. */
+/** Set once final images exist in batches/{id}/images/, whether Etch generated them or a human supplied/replaced them. */
 export const ImagesResultSchema = z.object({
   folder: z.string(),
   count: z.number().int().positive(),
   addedAt: isoTimestamp,
+  source: z.enum(["etch", "human"]),
 });
 export type ImagesResult = z.infer<typeof ImagesResultSchema>;
 

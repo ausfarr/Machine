@@ -1,12 +1,16 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
-import { assessCompetition, generateKeywordVariants, suggestAngle } from "./heuristics.ts";
+import { AnthropicClaudeClient, type ClaudeClient, type ThemeSelection } from "./claudeClient.ts";
 import { uniqueBatchId } from "./slug.ts";
 
 export interface ScoutRunOptions {
   /** Repo-root-relative or absolute path to the batches directory. Defaults to "batches". */
   batchesDir?: string;
+  /** Injected for tests; defaults to a real Anthropic-backed client. */
+  claudeClient?: ClaudeClient;
+  /** When this theme came from an automated queue selection, carries the rationale for the record. */
+  selection?: ThemeSelection;
 }
 
 export interface ScoutRunResult {
@@ -21,26 +25,28 @@ interface ResearchReport {
   theme: string;
   generatedAt: string;
   methodologyNote: string;
-  keywordVariants: string[];
-  competition: ReturnType<typeof assessCompetition>;
+  competitionLevel: string;
+  competitionRationale: string;
   suggestedAngle: string;
+  keywordVariants: string[];
+  selection?: {
+    rationale: string;
+    rankings: ThemeSelection["rankings"];
+  };
 }
 
 function renderMarkdown(report: ResearchReport): string {
-  const { theme, generatedAt, competition, suggestedAngle, keywordVariants, methodologyNote } = report;
+  const { theme, generatedAt, competitionLevel, competitionRationale, suggestedAngle, keywordVariants, methodologyNote, selection } =
+    report;
   return `# Scout Research Report: ${theme}
 
 Generated: ${generatedAt}
 
 > ${methodologyNote}
 
-## Competition estimate: ${competition.level.toUpperCase()}
+## Competition estimate: ${competitionLevel.toUpperCase()}
 
-${competition.rationale}
-
-- Word count: ${competition.signals.wordCount}
-- Matches known saturated niche terms: ${competition.signals.matchesKnownSaturatedNiche ? competition.signals.matchedSaturatedTerms.join(", ") : "none"}
-- Differentiating style/audience modifier present: ${competition.signals.hasSpecificityModifier ? competition.signals.matchedModifiers.join(", ") : "none"}
+${competitionRationale}
 
 ## Suggested angle
 
@@ -49,38 +55,51 @@ ${suggestedAngle}
 ## Candidate keyword variants
 
 ${keywordVariants.map((k) => `- ${k}`).join("\n")}
-
+${
+  selection
+    ? `\n## Why this theme was selected\n\n${selection.rationale}\n\n### All candidates considered\n\n${selection.rankings
+        .map((r) => `- **${r.theme}** (score ${r.score}): ${r.rationale}`)
+        .join("\n")}\n`
+    : ""
+}
 ## Next step
 
-This report does not greenlight anything by itself. A human reviews it and
-decides whether to move this theme forward to Loom.
+Scout selected and researched this theme automatically via the Anthropic
+API (see CLAUDE.md's Authorized external APIs section) — there is no
+separate human greenlight step before Loom runs on it. A human still
+reviews the batch at the pull request stage, before anything is published.
 `;
 }
 
-export function runScout(theme: string, options: ScoutRunOptions = {}): ScoutRunResult {
+export async function runScout(theme: string, options: ScoutRunOptions = {}): Promise<ScoutRunResult> {
   const trimmedTheme = theme.trim();
   if (!trimmedTheme) {
     throw new Error("Scout requires a non-empty theme.");
   }
 
   const batchesDir = options.batchesDir ?? "batches";
+  const claudeClient = options.claudeClient ?? new AnthropicClaudeClient();
+
   const batchId = uniqueBatchId(trimmedTheme, batchesDir);
   const batchDir = join(batchesDir, batchId);
-  mkdirSync(batchDir, { recursive: true });
 
   const generatedAt = new Date().toISOString();
-  const competition = assessCompetition(trimmedTheme);
-  const suggestedAngle = suggestAngle(trimmedTheme);
-  const keywordVariants = generateKeywordVariants(trimmedTheme);
+  const analysis = await claudeClient.analyzeTheme(trimmedTheme);
+
+  mkdirSync(batchDir, { recursive: true });
 
   const report: ResearchReport = {
     theme: trimmedTheme,
     generatedAt,
     methodologyNote:
-      "Competition and angle signals below are heuristic estimates generated locally from the theme text itself — not live Amazon/Google search-volume data. Scout calls no external API.",
-    keywordVariants,
-    competition,
-    suggestedAngle,
+      "Competition, angle, and keyword signals below are the Anthropic API's estimate, generated from its own knowledge — not live Amazon/Google search-volume data. Scout discloses this so the estimate is never mistaken for real market data.",
+    competitionLevel: analysis.competitionLevel,
+    competitionRationale: analysis.competitionRationale,
+    suggestedAngle: analysis.suggestedAngle,
+    keywordVariants: analysis.keywordVariants,
+    selection: options.selection
+      ? { rationale: options.selection.selectionRationale, rankings: options.selection.rankings }
+      : undefined,
   };
 
   const researchJsonPath = join(batchDir, "research.json");
@@ -97,8 +116,9 @@ export function runScout(theme: string, options: ScoutRunOptions = {}): ScoutRun
     scout: {
       reportJsonPath: researchJsonPath,
       reportMdPath: researchMdPath,
-      competitionLevel: competition.level,
-      suggestedAngle,
+      competitionLevel: analysis.competitionLevel,
+      suggestedAngle: analysis.suggestedAngle,
+      selectionRationale: options.selection?.selectionRationale,
       completedAt: generatedAt,
     },
   };

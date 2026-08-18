@@ -58,7 +58,7 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
   const existingManifest = validateManifest(JSON.parse(readFileSync(manifestPath, "utf-8")));
   if (existingManifest.stage !== "researched") {
     throw new Error(
-      `Batch "${batchId}" is at stage "${existingManifest.stage}", but Loom requires stage "researched". A human must review Scout's report and greenlight this theme before running Loom.`
+      `Batch "${batchId}" is at stage "${existingManifest.stage}", but Loom requires stage "researched". Run Scout first.`
     );
   }
 

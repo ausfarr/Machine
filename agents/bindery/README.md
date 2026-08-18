@@ -1,7 +1,7 @@
 # Bindery
 
-Interior assembly. Takes a batch's human-supplied final images and
-produces a print-ready interior PDF.
+Interior assembly. Takes a batch's final images — from Etch, a human, or
+a human replacing Etch's output — and produces a print-ready interior PDF.
 
 ## Usage
 
@@ -10,9 +10,14 @@ npm run bindery -- <batch-id>
 ```
 
 Requires the batch's `manifest.json` to be at stage `prompted` (Loom has
-run) and its images to be dropped into `batches/{batch-id}/images/`,
-named with a leading page number matching each prompt's index (`01.png`,
-`02.png`, ... — `.jpg`/`.jpeg` also accepted).
+run; a human is supplying/replacing images by hand) or `imaged` (Etch has
+already generated them), with images present in
+`batches/{batch-id}/images/`, named with a leading page number matching
+each prompt's index (`01.png`, `02.png`, ... — `.jpg`/`.jpeg` also
+accepted). Bindery re-validates the images on disk itself either way —
+it never trusts a prior stage's manifest entry over what's actually
+there. The resulting manifest's `images.source` records whether Etch or a
+human produced the final set.
 
 ## Validation (fails loudly, never assembles a broken file)
 
