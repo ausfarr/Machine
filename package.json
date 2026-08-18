@@ -1,0 +1,23 @@
+{
+  "name": "coloring-book-pipeline",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "AI-assisted content pipeline for publishing coloring books to Amazon KDP.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "validate:manifest": "tsx scripts/validate-manifest.ts"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.35.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.11"
+  }
+}
