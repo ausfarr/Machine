@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2026-08-18T20:53:43.116Z",
+  "source": "gemini",
+  "model": "gemini-2.5-flash-image",
+  "note": "AI-generated static portrait assets for cosmetic dashboard personas (CLAUDE.md 'Explicit scope (v1)'). Presentation only — never a source of dashboard numbers.",
+  "images": [
+    {
+      "agent": "scout",
+      "personaName": "ATLAS",
+      "file": "scout.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. The figure's head is overlaid with a faint glowing star-map / compass grid, as if scanning the horizon for a location."
+    },
+    {
+      "agent": "loom",
+      "personaName": "MUSE",
+      "file": "loom.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. Threads of glowing blue light weave and cross around the figure's hands and shoulders, as if spinning an idea into form."
+    },
+    {
+      "agent": "etch",
+      "personaName": "GLYPH",
+      "file": "etch.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. A single glowing line traces and etches fine linework across the figure's chest and face, like a stylus drawing itself into being."
+    },
+    {
+      "agent": "bindery",
+      "personaName": "FOLIO",
+      "file": "bindery.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. The figure's torso is formed of stacked, faintly glowing bound pages, spine-lit, like an open book fused into armor."
+    },
+    {
+      "agent": "crier",
+      "personaName": "HERALD",
+      "file": "crier.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. A glowing waveform / broadcast signal radiates outward from the figure's chest and shoulders, like a herald's call."
+    },
+    {
+      "agent": "ledger",
+      "personaName": "TALLY",
+      "file": "ledger.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. The figure's chest is overlaid with a faint glowing ledger grid and tally-mark lines, precise and orderly."
+    },
+    {
+      "agent": "sentinel",
+      "personaName": "SENTINEL",
+      "file": "sentinel.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. The figure stands watchful, with a glowing shield-like emblem on the chest and a single watchful point of light at the head, faint circuit-armor plating."
+    },
+    {
+      "agent": "analyst",
+      "personaName": "COMPASS",
+      "file": "analyst.png",
+      "prompt": "A cinematic dark mission-control character portrait: a humanoid figure built from glowing monochrome-blue wireframe lines and faint circuit-like glow, set against a near-black navy background with subtle depth fog. Bust/shoulders framing, centered, symmetrical, high contrast, no text, no logos, no watermark, square aspect ratio, digital concept art style. A glowing compass rose and a faint upward trend-line overlay the figure's chest, precise and analytical."
+    }
+  ]
+}
