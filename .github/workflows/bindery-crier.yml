@@ -1,0 +1,71 @@
+name: Bindery + Crier (on new images)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "batches/*/images/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  detect-batches:
+    runs-on: ubuntu-latest
+    outputs:
+      batches: ${{ steps.detect.outputs.batches }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: detect
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            CHANGED=$(git show --name-only --pretty="" HEAD -- 'batches/*/images/*')
+          else
+            CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}" -- 'batches/*/images/*')
+          fi
+          BATCH_IDS=$(echo "$CHANGED" | sed -E 's#^batches/([^/]+)/images/.*#\1#' | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "batches=$BATCH_IDS" >> "$GITHUB_OUTPUT"
+
+  assemble-and-list:
+    needs: detect-batches
+    if: needs.detect-batches.outputs.batches != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        batch_id: ${{ fromJson(needs.detect-batches.outputs.batches) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run Bindery
+        run: npx tsx agents/bindery/cli.ts "${{ matrix.batch_id }}"
+
+      - name: Run Crier
+        run: npx tsx agents/crier/cli.ts "${{ matrix.batch_id }}"
+
+      - name: Refresh dashboard status
+        run: npm run ledger
+
+      - name: Open PR for human review
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Bindery+Crier: assemble interior and listing for ${{ matrix.batch_id }}"
+          branch: batch/${{ matrix.batch_id }}-assembled
+          title: "Assembled: ${{ matrix.batch_id }}"
+          labels: automated-batch
+          body: |
+            Bindery validated the images and assembled `interior.pdf`; Crier drafted `listing.json`, now that images are in place for `${{ matrix.batch_id }}`.
+
+            This PR does not publish anything to KDP. A human should proof the interior PDF and listing copy, then publish externally — disclosing the AI-generated listing content per KDP's requirements, since this repo never obscures that.

@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-08-18T18:30:24.129Z",
+  "summary": {
+    "totalBatches": 0,
+    "invalidBatchCount": 0,
+    "byStage": {
+      "researched": 0,
+      "prompted": 0,
+      "imaged": 0,
+      "assembled": 0,
+      "listed": 0,
+      "published": 0
+    }
+  },
+  "batches": [],
+  "invalidBatches": []
+}
