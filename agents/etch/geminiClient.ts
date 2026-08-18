@@ -7,8 +7,8 @@ import { GoogleGenAI } from "@google/genai";
  */
 
 const DEFAULT_MODEL = "gemini-2.5-flash-image";
-const MAX_ATTEMPTS = 2;
-const RETRY_DELAY_MS = 1000;
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1500;
 
 export interface ImageGenClient {
   /** Generates one image for the given prompt and returns its raw bytes. */
@@ -85,6 +85,26 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * The Gemini SDK throws (rather than returning a normal response) on an
+ * HTTP-level failure, with a message like "got status: 503 Service
+ * Unavailable. {...}". A 5xx (server-side outage, deadline exceeded) or
+ * 429 (rate limited) is worth retrying; a 4xx like 400/401/403/404 means
+ * the request itself is wrong and will fail identically every time, so
+ * retrying just burns quota. A message with no parseable status (a raw
+ * network error) is treated as transient, since there's no signal it's a
+ * permanent problem with the request.
+ */
+export function isRetryableApiError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  const match = message.match(/got status:\s*(\d{3})/);
+  if (!match) {
+    return true;
+  }
+  const status = Number(match[1]);
+  return status === 429 || (status >= 500 && status < 600);
+}
+
 export class GeminiImageClient implements ImageGenClient {
   private readonly client: GoogleGenAI;
   private readonly model: string;
@@ -98,10 +118,21 @@ export class GeminiImageClient implements ImageGenClient {
     let lastDiagnostic = "no diagnostic information in the response";
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      const response = await this.client.models.generateContent({
-        model: this.model,
-        contents: prompt,
-      });
+      let response: Awaited<ReturnType<typeof this.client.models.generateContent>>;
+      try {
+        response = await this.client.models.generateContent({
+          model: this.model,
+          contents: prompt,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (!isRetryableApiError(err) || attempt === MAX_ATTEMPTS) {
+          throw new Error(`Etch: Gemini API call failed for prompt "${prompt}" (${message}).`);
+        }
+        lastDiagnostic = `API call failed: ${message}`;
+        await sleep(RETRY_DELAY_MS * attempt);
+        continue;
+      }
 
       const result = interpretGenerateContentResponse(response);
       if (result.imageBase64) {
@@ -114,7 +145,7 @@ export class GeminiImageClient implements ImageGenClient {
         break;
       }
 
-      await sleep(RETRY_DELAY_MS);
+      await sleep(RETRY_DELAY_MS * attempt);
     }
 
     throw new Error(`Etch: Gemini returned no image data for prompt "${prompt}" (${lastDiagnostic}).`);
