@@ -25,8 +25,15 @@ resized to Bindery's minimum print resolution (2550x3300px, 300 DPI at
 If any single image fails to generate, Etch throws immediately and leaves
 the manifest at stage `prompted` rather than claiming the batch reached
 `imaged` with missing or placeholder pages — per the "fail loudly" and "no
-fabricated data" guardrails. Re-run Etch once the underlying problem (bad
-prompt, API outage, etc.) is fixed.
+fabricated data" guardrails. The thrown error includes whatever diagnostic
+Gemini provided (a `promptFeedback.blockReason`, a non-`STOP`
+`finishReason`, or explanatory text), not just "no image data" — most
+often this means Gemini's content-safety filters declined the prompt
+(e.g. a theme phrased around a vulnerable population, like "for anxious
+kids"), which a retry won't fix. When the response gives no diagnostic at
+all, Etch retries once (a transient API hiccup is the likely cause) before
+giving up. Re-run Etch once the underlying problem (a prompt that needs
+rewording, an API outage, etc.) is fixed.
 
 ## A human can still override this
 

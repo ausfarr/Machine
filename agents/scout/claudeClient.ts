@@ -87,7 +87,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       messages: [
         {
           role: "user",
-          content: `You are Scout, the niche/keyword research step of a coloring-book publishing pipeline sold on Amazon KDP. Propose ${count} distinct, evergreen coloring-book theme ideas worth researching next. Prefer specific, differentiated angles (a style, audience, or motif) over generic broad nouns that are likely saturated.${avoidClause}`,
+          content: `You are Scout, the niche/keyword research step of a coloring-book publishing pipeline sold on Amazon KDP. Propose ${count} distinct, evergreen coloring-book theme ideas worth researching next. Prefer specific, differentiated angles (a style, audience, or motif) over generic broad nouns that are likely saturated. Each theme string gets used downstream as literal wording in an image-generation prompt, so keep every theme itself simple and concrete (a subject, setting, or style) — do not describe a target audience's emotional or mental state (e.g. "for anxious kids," "for grieving readers"); that framing adds nothing for a colorist choosing a book and can trip an image model's content-safety filters.${avoidClause}`,
         },
       ],
     });
