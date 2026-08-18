@@ -26,9 +26,9 @@ export async function runBindery(batchId: string, options: BinderyRunOptions = {
   }
 
   const existingManifest = validateManifest(JSON.parse(readFileSync(manifestPath, "utf-8")));
-  if (existingManifest.stage !== "prompted") {
+  if (existingManifest.stage !== "prompted" && existingManifest.stage !== "imaged") {
     throw new Error(
-      `Batch "${batchId}" is at stage "${existingManifest.stage}", but Bindery requires stage "prompted". Run Loom first, then drop the generated images into ${batchDir}/images/ before running Bindery.`
+      `Batch "${batchId}" is at stage "${existingManifest.stage}", but Bindery requires stage "prompted" or "imaged". Run Loom (and optionally Etch) first, or drop images into ${batchDir}/images/ by hand before running Bindery.`
     );
   }
 
@@ -52,6 +52,8 @@ export async function runBindery(batchId: string, options: BinderyRunOptions = {
       folder: imagesDir,
       count: images.length,
       addedAt: latestModifiedAt,
+      // Preserve Etch's provenance if it already ran; otherwise these images were supplied/edited by a human.
+      source: existingManifest.images?.source ?? "human",
     },
     bindery: {
       interiorPdfPath,

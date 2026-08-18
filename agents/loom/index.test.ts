@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { validateManifest } from "../../schemas/manifest.ts";
 import { runScout } from "../scout/index.ts";
+import { fakeClaudeClient } from "../scout/testFixtures.ts";
 import { runLoom } from "./index.ts";
 
 let tempDir: string | undefined;
@@ -16,9 +17,9 @@ afterEach(() => {
 });
 
 describe("runLoom", () => {
-  it("moves a researched batch to stage prompted with a valid prompt batch", () => {
+  it("moves a researched batch to stage prompted with a valid prompt batch", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
-    const scouted = runScout("Fantasy Castles", { batchesDir: tempDir });
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
 
     const result = runLoom(scouted.batchId, { batchesDir: tempDir });
 
@@ -38,9 +39,9 @@ describe("runLoom", () => {
     expect(frontBack).toContain("Fantasy Castles");
   });
 
-  it("refuses to run on a batch that isn't at stage researched", () => {
+  it("refuses to run on a batch that isn't at stage researched", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
-    const scouted = runScout("Fantasy Castles", { batchesDir: tempDir });
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
     runLoom(scouted.batchId, { batchesDir: tempDir });
 
     expect(() => runLoom(scouted.batchId, { batchesDir: tempDir })).toThrow(/stage "prompted"/);
@@ -51,9 +52,9 @@ describe("runLoom", () => {
     expect(() => runLoom("no-such-batch", { batchesDir: tempDir })).toThrow(/No batch found/);
   });
 
-  it("rejects an out-of-range prompt count", () => {
+  it("rejects an out-of-range prompt count", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
-    const scouted = runScout("Fantasy Castles", { batchesDir: tempDir });
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
     expect(() => runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 10 })).toThrow(/between 20 and 30/);
   });
 });

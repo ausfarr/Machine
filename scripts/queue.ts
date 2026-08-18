@@ -1,15 +1,32 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { runBindery } from "../agents/bindery/index.ts";
+import { AnthropicClaudeClient, type ClaudeClient } from "../agents/scout/claudeClient.ts";
+import { runCrier } from "../agents/crier/index.ts";
+import { GeminiImageClient, type ImageGenClient } from "../agents/etch/geminiClient.ts";
+import { runEtch } from "../agents/etch/index.ts";
 import { runLoom } from "../agents/loom/index.ts";
 import { runScout } from "../agents/scout/index.ts";
+import { selectTheme } from "../agents/scout/themeSelection.ts";
 
-export interface ProcessQueueOptions {
+export interface RunPipelineOptions {
   queuePath?: string;
   batchesDir?: string;
+  /** Injected for tests; default to real Anthropic/Gemini-backed clients. */
+  claudeClient?: ClaudeClient;
+  imageClient?: ImageGenClient;
+  promptCount?: number;
 }
 
-export type ProcessQueueResult =
+export type RunPipelineResult =
   | { processed: false }
-  | { processed: true; theme: string; batchId: string; stage: string; remainingQueueLength: number };
+  | {
+      processed: true;
+      theme: string;
+      batchId: string;
+      stage: string;
+      selectionRationale: string;
+      remainingQueueLength: number;
+    };
 
 export function readQueue(queuePath: string): string[] {
   if (!existsSync(queuePath)) {
@@ -27,31 +44,44 @@ export function writeQueue(queuePath: string, themes: string[]): void {
 }
 
 /**
- * Pops the next theme off the queue and runs Scout then Loom on it.
- * Adding a theme to theme-queue.json is the human greenlight this
- * pipeline requires before Loom runs — the same approval Loom's own
- * stage check enforces when a human invokes it directly.
+ * Runs the whole pipeline unattended, end to end, on one automatically
+ * selected theme: Scout (Claude picks + researches a theme from the
+ * queue) -> Loom -> Etch (Gemini generates the images) -> Bindery ->
+ * Crier. The queue entry is consumed as soon as a theme is selected, so a
+ * later failure downstream doesn't cause the same theme to be reselected
+ * forever — the batch simply stays at whatever stage it reached, visible
+ * to a human via Ledger/the dashboard, and the failure surfaces loudly
+ * through the workflow run rather than being swallowed.
  */
-export function processNextQueuedTheme(options: ProcessQueueOptions = {}): ProcessQueueResult {
+export async function runPipelineFromQueue(options: RunPipelineOptions = {}): Promise<RunPipelineResult> {
   const queuePath = options.queuePath ?? "theme-queue.json";
   const batchesDir = options.batchesDir ?? "batches";
+  const claudeClient = options.claudeClient ?? new AnthropicClaudeClient();
+  const imageClient = options.imageClient ?? new GeminiImageClient();
 
   const queue = readQueue(queuePath);
   if (queue.length === 0) {
     return { processed: false };
   }
 
-  const [theme, ...rest] = queue;
-  const scouted = runScout(theme!, { batchesDir });
-  const loomed = runLoom(scouted.batchId, { batchesDir });
+  const selection = await selectTheme(queue, claudeClient);
 
-  writeQueue(queuePath, rest);
+  const selectedIndex = queue.findIndex((t) => t.trim().toLowerCase() === selection.selectedTheme.trim().toLowerCase());
+  const remaining = [...queue.slice(0, selectedIndex), ...queue.slice(selectedIndex + 1)];
+  writeQueue(queuePath, remaining);
+
+  const scouted = await runScout(selection.selectedTheme, { batchesDir, claudeClient, selection });
+  const loomed = runLoom(scouted.batchId, { batchesDir, promptCount: options.promptCount });
+  await runEtch(loomed.manifest.batchId, { batchesDir, imageClient });
+  await runBindery(loomed.manifest.batchId, { batchesDir });
+  const cried = runCrier(loomed.manifest.batchId, { batchesDir });
 
   return {
     processed: true,
-    theme: theme!,
+    theme: selection.selectedTheme,
     batchId: scouted.batchId,
-    stage: loomed.manifest.stage,
-    remainingQueueLength: rest.length,
+    stage: cried.manifest.stage,
+    selectionRationale: selection.selectionRationale,
+    remainingQueueLength: remaining.length,
   };
 }

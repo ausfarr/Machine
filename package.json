@@ -10,12 +10,15 @@
     "validate:manifest": "tsx scripts/validate-manifest.ts",
     "scout": "tsx agents/scout/cli.ts",
     "loom": "tsx agents/loom/cli.ts",
+    "etch": "tsx agents/etch/cli.ts",
     "bindery": "tsx agents/bindery/cli.ts",
     "crier": "tsx agents/crier/cli.ts",
     "ledger": "tsx agents/ledger/cli.ts",
-    "process-queue": "tsx scripts/run-scout-loom-from-queue.ts"
+    "process-queue": "tsx scripts/run-pipeline-from-queue.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@google/genai": "^0.15.0",
     "pdf-lib": "^1.17.1",
     "sharp": "^0.35.3",
     "zod": "^3.24.1"

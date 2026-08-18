@@ -8,35 +8,59 @@ An AI-assisted content pipeline for publishing coloring books to Amazon KDP. Thi
 
 **In scope:**
 - Coloring books only, sold via Amazon KDP (paperback, low-content)
-- Niche/keyword research
-- Prompt generation for an external AI image tool
-- Interior PDF assembly from human-supplied images
+- Niche/keyword research and automated theme selection, using the Anthropic API (see "Authorized external APIs" below)
+- Prompt generation, and automated image generation from those prompts using the Gemini API (see below)
+- Interior PDF assembly from the resulting images
 - Listing metadata generation (title, keywords, categories, description)
 - A dashboard showing real pipeline status
 
 **Explicitly out of scope for v1 — do not build:**
 - General print-on-demand / Etsy / Shopify integration
 - Any trading, market-signal, or financial automation
-- Actual image generation (no image-gen API calls — this repo produces prompts; a human runs them externally)
 - Auto-publishing to Amazon or any platform
 - Any fabricated or placeholder metrics on the dashboard — it only ever shows real data pulled from this repo's own run history
+
+## Authorized external APIs
+
+Per the "no agent calls an external paid API without that being explicitly
+stated in this file first" guardrail, exactly two paid APIs are authorized,
+each scoped to one agent:
+
+- **Anthropic API (Claude)** — used by **Scout** to research candidate
+  themes and to select which queued theme to pursue next. This replaces the
+  human "greenlight a theme" checkpoint that earlier versions of this
+  pipeline had: Scout's theme choice is now the automated decision, not a
+  human one. Requires `ANTHROPIC_API_KEY`.
+- **Gemini API** — used by **Etch** (see below) to generate the actual
+  interior images from Loom's prompts. This replaces the earlier
+  human-runs-an-external-tool-by-hand step. Requires `GEMINI_API_KEY`.
+
+Every research report and generated image is labeled as AI-produced in the
+batch manifest — this repo never obscures which parts of a batch were
+machine-generated, including to itself. No other agent calls an external
+paid API. Adding one to another agent requires updating this section first.
 
 ## Agents (modules)
 
 Each agent is a self-contained script with one job.
 
-### Scout — niche & keyword research
-- Input: a rough theme or category
-- Output: a research report (`.json` + `.md`) — competition level, search-volume signals, suggested angle
-- Does not decide what to build next; a human reads the report and greenlights a theme
+### Scout — niche & keyword research + theme selection
+- Input: the pool of candidate themes in `theme-queue.json`
+- Output: a research report (`.json` + `.md`) on the theme it selects — competition assessment, suggested angle, keyword variants — plus the Claude-generated rationale for why that theme was chosen over the other candidates
+- Uses the Anthropic API to both analyze candidates and pick one; this is an automated decision, not a human one. The report explicitly discloses it's an LLM's estimate, not live Amazon/Google search-volume data.
 
 ### Loom — prompt generation
-- Input: an approved theme from Scout's output
-- Output: a batch of 20–30 image prompts (`.json`), formatted for an external tool (Ideogram/Firefly/etc.), plus draft front/back matter text
-- Does not call any image generation API. Prompts are meant to be pasted into an external tool by hand.
+- Input: the theme Scout selected
+- Output: a batch of 20–30 image prompts (`.json`), formatted for Etch (and still usable by hand in an external tool if a human wants to bypass Etch), plus draft front/back matter text
+- Does not call any image generation API itself — it only writes prompts. Etch is the agent that turns them into images.
+
+### Etch — image generation
+- Input: `prompts.json` from an approved (`prompted`-stage) batch
+- Output: one generated image per prompt in `/batches/{batch-id}/images/`, meeting Bindery's minimum resolution for print
+- Calls the Gemini API per the authorization above. Fails loudly and leaves the manifest at its prior stage if any image fails to generate, rather than assembling a batch with missing or placeholder pages. A human can still hand-supply or replace images in this folder instead of/in addition to running Etch — Bindery accepts either.
 
 ### Bindery — interior assembly
-- Input: a folder of human-supplied final images (`/batches/{batch-id}/images/`)
+- Input: a folder of final images (`/batches/{batch-id}/images/`) — from Etch, a human, or both
 - Output: a print-ready interior PDF meeting KDP's trim size, margin, and bleed specs (8.5x11 default)
 - Validates image count, resolution, and page order before assembling; fails loudly if anything's missing rather than silently producing a broken file
 
@@ -53,23 +77,38 @@ Each agent is a self-contained script with one job.
 ## Data flow
 
 ```
-Scout → research report → [human: pick a theme]
-  → Loom → prompt batch → [human: generate images externally, drop in /batches/{id}/images/]
-  → Bindery + Crier (run together once images exist) → interior PDF + listing copy
+Scout (Claude API: research + auto-select theme from theme-queue.json)
+  → Loom → prompt batch
+  → Etch (Gemini API: generate images from prompts) → /batches/{id}/images/
+  → Bindery + Crier → interior PDF + listing copy
+  → PR opened for human review
   → [human: proof, disclose, publish]
 ```
+
+The whole chain from theme selection through listing copy runs unattended
+in one pipeline run. The only remaining human checkpoint is the PR at the
+end — proofing the interior PDF and listing copy, disclosing AI-generated
+content per KDP's rules, and publishing externally. Nothing in this repo
+merges its own PRs or publishes to KDP.
+
+A human can still intervene mid-pipeline at any point — e.g. edit
+`prompts.json` before Etch runs, or replace files in a batch's `images/`
+folder before Bindery runs — every agent re-validates its own inputs
+rather than trusting that an earlier automated step got it right.
 
 Each batch lives in `/batches/{batch-id}/` with a `manifest.json` tracking its stage: `researched` → `prompted` → `imaged` → `assembled` → `listed` → `published`.
 
 ## Tech stack
 
 - **Language:** TypeScript / Node.js
+- **Research + theme selection:** Anthropic API (Scout only — see "Authorized external APIs")
+- **Image generation:** Gemini API (Etch only — see "Authorized external APIs")
 - **PDF assembly:** `pdf-lib`
 - **Image handling:** `sharp`
 - **Dashboard:** React + Vite + Tailwind, static build deployed via GitHub Pages
 - **Automation:** GitHub Actions
-  - Scheduled workflow runs Scout + Loom weekly against a queue of candidate themes
-  - A workflow triggers on new images landing in a batch folder, runs Bindery + Crier, opens a PR
+  - Scheduled pipeline workflow runs Scout → Loom → Etch → Bindery → Crier → Ledger weekly against the theme queue, end to end, and opens one PR with the whole batch for human review
+  - A separate workflow triggers on new/changed images landing in a batch folder (e.g. a human replacing Etch's output by hand) and re-runs Bindery + Crier, opening a PR
   - No workflow ever auto-merges or auto-publishes
 
 ## Folder structure
@@ -78,6 +117,7 @@ Each batch lives in `/batches/{batch-id}/` with a `manifest.json` tracking its s
 /agents
   /scout
   /loom
+  /etch
   /bindery
   /crier
   /ledger
@@ -86,7 +126,7 @@ Each batch lives in `/batches/{batch-id}/` with a `manifest.json` tracking its s
     manifest.json
     research.md
     prompts.json
-    images/        (human-populated)
+    images/        (Etch-generated, or human-supplied/edited)
     interior.pdf
     listing.json
 /dashboard
@@ -104,12 +144,14 @@ Build and PR one agent at a time, in this order, so each can be reviewed indepen
 5. Crier
 6. Ledger + dashboard
 7. GitHub Actions workflows
+8. Etch (image generation) + full pipeline automation
 
 Do not build the dashboard before agents 2–5 exist — it needs real data to render against.
 
 ## Guardrails
 
 - No fabricated data anywhere, including in placeholder/demo states
-- No agent calls an external paid API without that being explicitly stated in this file first
-- No agent auto-publishes, auto-purchases, or takes any irreversible action
+- No agent calls an external paid API without that being explicitly stated in this file's "Authorized external APIs" section
+- No agent auto-publishes, auto-purchases (beyond the two authorized per-call API costs above), or takes any irreversible action
 - If a step's output looks wrong, fail with a clear error rather than proceeding with bad data
+- Every report or asset produced by an authorized API call is labeled as AI-generated in the manifest — never presented as human-authored or as real market data
