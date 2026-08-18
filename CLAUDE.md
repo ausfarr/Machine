@@ -13,6 +13,9 @@ An AI-assisted content pipeline for publishing coloring books to Amazon KDP. Thi
 - Interior PDF assembly from the resulting images
 - Listing metadata generation (title, keywords, categories, description)
 - A dashboard showing real pipeline status
+- Cosmetic agent personas (name/portrait/tagline) on the dashboard —
+  presentation only, must never be the source of a displayed number;
+  all numbers still come from Ledger's real run data.
 
 **Explicitly out of scope for v1 — do not build:**
 - General print-on-demand / Etsy / Shopify integration
@@ -23,8 +26,9 @@ An AI-assisted content pipeline for publishing coloring books to Amazon KDP. Thi
 ## Authorized external APIs
 
 Per the "no agent calls an external paid API without that being explicitly
-stated in this file first" guardrail, exactly two paid APIs are authorized,
-each scoped to one agent:
+stated in this file first" guardrail, exactly three paid API authorizations
+exist, each scoped to one agent (two distinct keys — Sentinel reuses Scout's
+`ANTHROPIC_API_KEY`):
 
 - **Anthropic API (Claude)** — used by **Scout** to research candidate
   themes and to select which queued theme to pursue next. This replaces the
@@ -34,6 +38,11 @@ each scoped to one agent:
 - **Gemini API** — used by **Etch** (see below) to generate the actual
   interior images from Loom's prompts. This replaces the earlier
   human-runs-an-external-tool-by-hand step. Requires `GEMINI_API_KEY`.
+- **Anthropic API (Claude)** — used by **Sentinel** to diagnose CI/test
+  failures and draft fix PRs against this repo. Scoped to this repo's own
+  code and workflows only; never touches batch data, KDP, or any external
+  account. Every fix is a PR, never an auto-merge. Requires the same
+  `ANTHROPIC_API_KEY` already used by Scout.
 
 Every research report and generated image is labeled as AI-produced in the
 batch manifest — this repo never obscures which parts of a batch were
@@ -73,6 +82,27 @@ Each agent is a self-contained script with one job.
 - Reads run logs and batch manifests across the repo
 - Outputs the data file the dashboard renders
 - Never invents numbers. If something hasn't run yet, it shows "not yet run," not a placeholder figure.
+
+### Sentinel — repo self-improvement & ops
+- Input: CI run results, test failures, dependency audit output from this repo
+- Output: a diagnosis of what broke or drifted, plus a draft fix (PR) —
+  never auto-merged
+- Uses the Anthropic API to analyze failures and draft fixes. This is the
+  third and last authorized use of that key — see "Authorized external
+  APIs" above; add it there before building this agent, not after.
+- Scope: this repo only. It does not touch KDP, batches, or any external
+  account. If a fix is wrong, a human catches it in PR review like every
+  other agent's output.
+
+### Analyst — marketing & sales analytics
+- Input: KDP sales/royalty report exports, uploaded by a human once a
+  book is actually published (no live KDP API integration in v1 — KDP
+  doesn't offer one suited to this)
+- Output: real performance data (units, royalties, keyword performance)
+  surfaced on the dashboard
+- Until a human uploads a real export, this agent has nothing to report.
+  The dashboard must show an honest "not yet published" / zero state,
+  never a placeholder number, per the no-fabricated-data guardrail.
 
 ## Data flow
 
@@ -152,6 +182,6 @@ Do not build the dashboard before agents 2–5 exist — it needs real data to r
 
 - No fabricated data anywhere, including in placeholder/demo states
 - No agent calls an external paid API without that being explicitly stated in this file's "Authorized external APIs" section
-- No agent auto-publishes, auto-purchases (beyond the two authorized per-call API costs above), or takes any irreversible action
+- No agent auto-publishes, auto-purchases (beyond the three authorized per-call API costs above), or takes any irreversible action
 - If a step's output looks wrong, fail with a clear error rather than proceeding with bad data
 - Every report or asset produced by an authorized API call is labeled as AI-generated in the manifest — never presented as human-authored or as real market data
