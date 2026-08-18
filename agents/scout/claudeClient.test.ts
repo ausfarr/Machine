@@ -32,10 +32,10 @@ describe("parseToolResult", () => {
     );
   });
 
-  it("throws a specific error when the parsed input doesn't match the schema, even with array-field recovery enabled", () => {
+  it("throws a specific error naming the raw offending value when the field can't be recovered at all", () => {
     const message = fakeMessage("report_candidate_themes", { themes: "Cozy Cabins, not an array or JSON" });
     expect(() => parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"])).toThrow(
-      /didn't match the expected shape/
+      /didn't match the expected shape.*Raw value\(s\) that failed recovery: themes="Cozy Cabins, not an array or JSON"/s
     );
   });
 
@@ -45,6 +45,33 @@ describe("parseToolResult", () => {
     const message = fakeMessage("report_candidate_themes", { themes: JSON.stringify(["Cozy Cabins", "Fantasy Castles"]) });
     const result = parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"]);
     expect(result.themes).toEqual(["Cozy Cabins", "Fantasy Castles"]);
+  });
+
+  it("recovers a plain newline-delimited list, not just JSON-encoded arrays", () => {
+    // Regression test: a real failure persisted after JSON-recovery landed because
+    // Claude returned a plain "\n"-joined list, not JSON array syntax.
+    const message = fakeMessage("report_candidate_themes", { themes: "Cozy Cabins\nFantasy Castles\nCoastal Cabins, Nordic Style" });
+    const result = parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"]);
+    expect(result.themes).toEqual(["Cozy Cabins", "Fantasy Castles", "Coastal Cabins, Nordic Style"]);
+  });
+
+  it("strips list markers (-, *, 1.) when recovering a newline-delimited list", () => {
+    const message = fakeMessage("report_candidate_themes", { themes: "1. Cozy Cabins\n2. Fantasy Castles\n- Woodland Creatures" });
+    const result = parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"]);
+    expect(result.themes).toEqual(["Cozy Cabins", "Fantasy Castles", "Woodland Creatures"]);
+  });
+
+  it("recovers a semicolon-delimited list when there's no newline", () => {
+    const message = fakeMessage("report_candidate_themes", { themes: "Cozy Cabins; Fantasy Castles; Woodland Creatures" });
+    const result = parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"]);
+    expect(result.themes).toEqual(["Cozy Cabins", "Fantasy Castles", "Woodland Creatures"]);
+  });
+
+  it("does not split a single item on a bare comma, since a theme can legitimately contain one", () => {
+    const message = fakeMessage("report_candidate_themes", { themes: "Coastal Cabins, Nordic Style" });
+    expect(() => parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"])).toThrow(
+      /didn't match the expected shape/
+    );
   });
 
   it("does not attempt array-field recovery unless the field is named in arrayFields", () => {
