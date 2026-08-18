@@ -203,14 +203,46 @@ export class AnthropicClaudeClient implements ClaudeClient {
 }
 
 /**
+ * Recovers a plain delimited list (one item per line, optionally with a
+ * "- ", "* ", or "1. " list marker; or semicolon-separated) into an array
+ * of trimmed, non-empty items. Returns undefined if the string doesn't
+ * look like a multi-item list, so the caller can leave it untouched.
+ * Deliberately does not split on bare commas — a single item can
+ * legitimately contain one (e.g. a theme phrased "Coastal Cabins, Nordic
+ * Style"), so a comma split risks corrupting rather than recovering data.
+ */
+function splitDelimitedList(value: string): string[] | undefined {
+  const lines = value
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "").trim())
+    .filter((line) => line.length > 0);
+  if (lines.length > 1) {
+    return lines;
+  }
+
+  const semicolonParts = value
+    .split(";")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  if (semicolonParts.length > 1) {
+    return semicolonParts;
+  }
+
+  return undefined;
+}
+
+/**
  * Claude's tool calls occasionally return an array-typed property as a
- * JSON-encoded string instead of a real nested array (a known structured-
- * output quirk, not specific to any one field). This coerces each named
- * field back into an array before validation, rather than rejecting a
- * perfectly recoverable response outright. A field that isn't a string,
- * or a string that isn't valid JSON, or doesn't parse to an array, is
+ * string instead of a real nested array (a known structured-output
+ * quirk, not specific to any one field) — either JSON-encoded
+ * (`'["a","b"]'`) or a plain delimited list (`"a\nb"`). This coerces each
+ * named field back into an array before validation, rather than
+ * rejecting a perfectly recoverable response outright. A field that
+ * isn't a string, or a string that doesn't look like either shape, is
  * left untouched — the schema below still reports a precise, honest
- * validation error for anything genuinely malformed.
+ * validation error for anything genuinely malformed, and that error
+ * includes the field's raw value so an unrecognized shape is diagnosable
+ * without another round trip.
  */
 function recoverStringifiedArrayFields(input: unknown, fields: string[]): unknown {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
@@ -221,13 +253,20 @@ function recoverStringifiedArrayFields(input: unknown, fields: string[]): unknow
   for (const field of fields) {
     const value = fixed[field];
     if (typeof value !== "string") continue;
+
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) {
         fixed[field] = parsed;
+        continue;
       }
     } catch {
-      // Not JSON — leave it as-is so schema validation reports the real problem.
+      // Not JSON — fall through to delimiter-based recovery below.
+    }
+
+    const split = splitDelimitedList(value);
+    if (split) {
+      fixed[field] = split;
     }
   }
   return fixed;
@@ -271,7 +310,14 @@ export function parseToolResult<T>(
 
   const result = schema.safeParse(input);
   if (!result.success) {
-    throw new Error(`Scout: Claude's "${toolName}" tool call didn't match the expected shape: ${result.error.message}`);
+    const record = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
+    const rawValues = arrayFields
+      .filter((field) => typeof record[field] === "string")
+      .map((field) => `${field}=${JSON.stringify(record[field])}`);
+    const rawValuesSuffix = rawValues.length > 0 ? ` Raw value(s) that failed recovery: ${rawValues.join(", ")}.` : "";
+    throw new Error(
+      `Scout: Claude's "${toolName}" tool call didn't match the expected shape: ${result.error.message}.${rawValuesSuffix}`
+    );
   }
   return result.data;
 }
