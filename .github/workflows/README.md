@@ -7,13 +7,16 @@ happens entirely outside this repo, by hand.
 ## `pipeline.yml` — weekly, or manual
 
 Runs weekly (Monday 13:00 UTC) and on `workflow_dispatch`. Runs the whole
-pipeline unattended on one theme from `theme-queue.json` (repo root):
-Scout picks and researches the theme via the Anthropic API, Loom writes
-prompts, Etch generates the images via the Gemini API, then Bindery
-assembles the interior PDF and Crier drafts the listing. Adding a theme
-to the queue is what makes it eligible — Scout still has to select it
-before anything runs. Opens one PR with the whole batch for a human to
-review before merging. If the queue is empty, it's a no-op.
+pipeline unattended, end to end, on one theme: Scout proposes fresh
+candidate themes itself via the Anthropic API (avoiding themes already
+produced), blends them with anything queued by hand in `theme-queue.json`
+at the repo root, picks one, and researches it. Loom then writes prompts,
+Etch generates the images via the Gemini API, and Bindery + Crier
+assemble the interior PDF and listing. `theme-queue.json` is optional —
+it's a way to make sure a specific idea gets considered, not a required
+gate; this workflow produces a batch every time it runs, queue or no
+queue. Opens one PR with the whole batch for a human to review before
+merging.
 
 Requires the `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` repo secrets — see
 CLAUDE.md's "Authorized external APIs" section for what each is scoped to.

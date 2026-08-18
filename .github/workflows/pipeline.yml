@@ -29,11 +29,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Refresh dashboard status
-        if: steps.process.outputs.batch_id != ''
         run: npm run ledger
 
       - name: Open PR for human review
-        if: steps.process.outputs.batch_id != ''
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "Pipeline: research, prompts, images, interior, and listing for ${{ steps.process.outputs.theme }}"
@@ -41,7 +39,7 @@ jobs:
           title: "New batch: ${{ steps.process.outputs.theme }}"
           labels: automated-batch
           body: |
-            Scout selected and researched this theme from `theme-queue.json` via the Anthropic API, Loom generated prompts, Etch generated the interior images via the Gemini API, and Bindery + Crier assembled the interior PDF and listing copy — the whole pipeline ran unattended, per CLAUDE.md's Authorized external APIs section.
+            Scout proposed and selected this theme itself via the Anthropic API (blended with anything queued by hand in `theme-queue.json`) and researched it, Loom generated prompts, Etch generated the interior images via the Gemini API, and Bindery + Crier assembled the interior PDF and listing copy — the whole pipeline ran unattended, per CLAUDE.md's Authorized external APIs section.
 
             This PR does not publish anything. A human should read `batches/${{ steps.process.outputs.batch_id }}/research.md`, proof `interior.pdf` and `listing.json`, then either:
             - merge this PR and publish externally (disclosing the AI-generated content per KDP's requirements), or

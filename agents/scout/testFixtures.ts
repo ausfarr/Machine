@@ -14,5 +14,8 @@ export function fakeClaudeClient(analysis: Partial<ThemeAnalysis> = {}): ClaudeC
     selectTheme: async () => {
       throw new Error("fakeClaudeClient: selectTheme not stubbed for this test");
     },
+    generateCandidateThemes: async () => {
+      throw new Error("fakeClaudeClient: generateCandidateThemes not stubbed for this test");
+    },
   };
 }

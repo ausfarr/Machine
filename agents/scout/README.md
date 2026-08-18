@@ -1,7 +1,7 @@
 # Scout
 
-Niche/keyword research and automated theme selection. Given a pool of
-candidate themes, picks one to pursue and writes a research report to a
+Niche/keyword research and automated theme selection. Proposes its own
+candidate themes, picks one to pursue, and writes a research report to a
 new `/batches/{batch-id}/` folder.
 
 ## Usage
@@ -10,22 +10,28 @@ new `/batches/{batch-id}/` folder.
 npm run scout -- "a rough theme or category"
 ```
 
-Runs Scout directly against a single theme (no selection step — useful for
-testing a specific idea by hand). Writes `research.json`, `research.md`,
-and `manifest.json` (stage: `researched`) into a new batch folder.
+Runs Scout directly against a single theme (no generation/selection step
+— useful for testing a specific idea by hand). Writes `research.json`,
+`research.md`, and `manifest.json` (stage: `researched`) into a new batch
+folder.
 
-To let Scout choose from the queue of candidates in `theme-queue.json`,
-use the full pipeline instead: `npm run process-queue` (see the root
-`README.md`).
+To let Scout generate and choose from its own candidates (optionally
+blended with `theme-queue.json`), use the full pipeline instead:
+`npm run process-queue` (see the root `README.md`).
 
 ## Requires `ANTHROPIC_API_KEY`
 
 Scout calls the Anthropic API — the only external API it's authorized to
 call, per CLAUDE.md's "Authorized external APIs" section. It's used for
-two things:
+three things:
 
+- **Candidate generation** (`generateCandidateThemes`, used by the
+  pipeline script): proposes fresh theme ideas so the pipeline never
+  depends on a human pre-populating `theme-queue.json`, avoiding themes
+  already produced by an existing batch.
 - **Theme selection** (`selectTheme`, used by the pipeline script): ranks
-  every queued candidate and picks one, with a rationale for each.
+  every candidate (generated + any queued by hand) and picks one, with a
+  rationale for each.
 - **Research** (`analyzeTheme`): estimates competition level, suggests a
   differentiating angle, and proposes keyword variants for the selected
   theme.
