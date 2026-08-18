@@ -17,38 +17,49 @@ const OUTPUT_DIR = join("dashboard", "public", "agents");
 const PORTRAIT_SIZE = 768;
 
 const SHARED_STYLE =
-  "A cinematic dark mission-control character portrait: a humanoid figure " +
-  "built from glowing monochrome-blue wireframe lines and faint circuit-like " +
-  "glow, set against a near-black navy background with subtle depth fog. " +
-  "Bust/shoulders framing, centered, symmetrical, high contrast, no text, " +
-  "no logos, no watermark, square aspect ratio, digital concept art style.";
+  "A moody, cinematic portrait blending photographic human realism with a " +
+  "glowing monochrome-blue hologram/wireframe treatment: real, detailed, " +
+  "individual facial features and a distinct personality/expression — not " +
+  "an abstract or generic mesh face. Softly lit by a cool blue glow, set " +
+  "against a near-black navy background with subtle atmospheric haze. " +
+  "Shoulders-up framing, centered, mission-control HUD aesthetic, no text, " +
+  "no logos, no watermark, square aspect ratio, high detail digital art.";
 
 const VISUAL_MOTIFS: Record<string, string> = {
   scout:
-    "The figure's head is overlaid with a faint glowing star-map / compass " +
-    "grid, as if scanning the horizon for a location.",
+    "A young man with short dark hair and a focused, scanning gaze, chin " +
+    "slightly lifted as if reading a distant horizon. A faint glowing " +
+    "star-map / compass grid traces across his forehead and cheek.",
   loom:
-    "Threads of glowing blue light weave and cross around the figure's " +
-    "hands and shoulders, as if spinning an idea into form.",
+    "A woman with long flowing hair and an inspired, dreamy expression, " +
+    "glancing slightly upward. Faint threads of glowing blue light weave " +
+    "through her hair and around her shoulders, as if spinning an idea " +
+    "into form.",
   etch:
-    "A single glowing line traces and etches fine linework across the " +
-    "figure's chest and face, like a stylus drawing itself into being.",
+    "A man with sharp features, short hair, and an intent, focused " +
+    "expression, leaning slightly forward as if mid-work. A single glowing " +
+    "line traces fine linework across his cheek and jaw, like a stylus " +
+    "etching itself into being.",
   bindery:
-    "The figure's torso is formed of stacked, faintly glowing bound pages, " +
-    "spine-lit, like an open book fused into armor.",
+    "A composed woman with her hair pulled back and a calm, orderly " +
+    "expression. Faint glowing lines like stacked bound pages trace across " +
+    "her collar and shoulder, spine-lit.",
   crier:
-    "A glowing waveform / broadcast signal radiates outward from the " +
-    "figure's chest and shoulders, like a herald's call.",
+    "A confident man with an animated, mid-speech expression and a slight " +
+    "smile. A glowing waveform / broadcast signal radiates faintly from " +
+    "his collar and jaw, like a herald's call.",
   ledger:
-    "The figure's chest is overlaid with a faint glowing ledger grid and " +
-    "tally-mark lines, precise and orderly.",
+    "A sharp-eyed woman with neatly styled hair and a precise, attentive " +
+    "expression. A faint glowing ledger-grid and tally-mark pattern " +
+    "overlays her cheek and collar, orderly and exact.",
   sentinel:
-    "The figure stands watchful, with a glowing shield-like emblem on the " +
-    "chest and a single watchful point of light at the head, faint " +
-    "circuit-armor plating.",
+    "A vigilant man with a strong jaw and a stern, watchful expression. A " +
+    "faint glowing shield-shaped emblem rests at his collar, with a single " +
+    "point of light reflected in his eyes.",
   analyst:
-    "A glowing compass rose and a faint upward trend-line overlay the " +
-    "figure's chest, precise and analytical.",
+    "A thoughtful woman with an analytical, calm expression, gazing " +
+    "slightly off-frame. A faint glowing compass rose and upward " +
+    "trend-line overlay her shoulder and collar, precise and analytical.",
 };
 
 function buildPrompt(agent: string): string {
