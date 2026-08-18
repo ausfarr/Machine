@@ -1,0 +1,22 @@
+{
+  "_comment": "Fixture for schema tests and docs only — not a real batch. Delete if it ever gets confused for one.",
+  "batchId": "example-fantasy-castles",
+  "stage": "prompted",
+  "theme": "Fantasy castles for adult colorists",
+  "createdAt": "2026-08-01T12:00:00Z",
+  "updatedAt": "2026-08-03T09:30:00Z",
+  "scout": {
+    "reportJsonPath": "batches/example-fantasy-castles/research.json",
+    "reportMdPath": "batches/example-fantasy-castles/research.md",
+    "competitionLevel": "medium",
+    "suggestedAngle": "Gothic/fairytale hybrid castles, intricate line detail for adult colorists",
+    "completedAt": "2026-08-01T12:00:00Z"
+  },
+  "loom": {
+    "promptsPath": "batches/example-fantasy-castles/prompts.json",
+    "promptCount": 24,
+    "frontMatterDraft": "A collection of 24 fantasy castle illustrations...",
+    "backMatterDraft": "Thank you for coloring with us...",
+    "completedAt": "2026-08-03T09:30:00Z"
+  }
+}
