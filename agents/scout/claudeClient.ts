@@ -255,9 +255,17 @@ function recoverStringifiedArrayFields(input: unknown, fields: string[]): unknow
     if (typeof value !== "string") continue;
 
     try {
-      const parsed = JSON.parse(value);
+      const parsed: unknown = JSON.parse(value);
       if (Array.isArray(parsed)) {
         fixed[field] = parsed;
+        continue;
+      }
+      // Double-wrapped case: the field's string value is itself the whole
+      // tool-input object again (e.g. themes: '{"themes": [...]}'), not
+      // just the array — observed in practice, not hypothetical. Unwrap
+      // one level rather than treating it as unrecoverable.
+      if (parsed && typeof parsed === "object" && Array.isArray((parsed as Record<string, unknown>)[field])) {
+        fixed[field] = (parsed as Record<string, unknown>)[field];
         continue;
       }
     } catch {

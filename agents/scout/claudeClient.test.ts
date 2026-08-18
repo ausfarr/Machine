@@ -47,6 +47,18 @@ describe("parseToolResult", () => {
     expect(result.themes).toEqual(["Cozy Cabins", "Fantasy Castles"]);
   });
 
+  it("unwraps a double-wrapped field, where the string value is the whole tool-input object again", () => {
+    // Regression test: a real failure had Claude return
+    // { themes: '{"themes": ["Cottagecore mushroom cabins...", ...]}' } —
+    // the field's string value was the *entire* tool input shape again,
+    // not just the array.
+    const message = fakeMessage("report_candidate_themes", {
+      themes: JSON.stringify({ themes: ["Cottagecore mushroom cabins", "Art Nouveau peacock feathers"] }),
+    });
+    const result = parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"]);
+    expect(result.themes).toEqual(["Cottagecore mushroom cabins", "Art Nouveau peacock feathers"]);
+  });
+
   it("recovers a plain newline-delimited list, not just JSON-encoded arrays", () => {
     // Regression test: a real failure persisted after JSON-recovery landed because
     // Claude returned a plain "\n"-joined list, not JSON array syntax.
