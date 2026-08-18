@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
 
 /**
  * Scout's one authorized external API call (see CLAUDE.md's "Authorized
@@ -28,6 +29,29 @@ export interface ThemeSelection {
   selectionRationale: string;
   rankings: ThemeRanking[];
 }
+
+const ThemeAnalysisSchema = z.object({
+  competitionLevel: z.enum(["low", "medium", "high"]),
+  competitionRationale: z.string(),
+  suggestedAngle: z.string(),
+  keywordVariants: z.array(z.string()),
+});
+
+const ThemeRankingSchema = z.object({
+  theme: z.string(),
+  score: z.number(),
+  rationale: z.string(),
+});
+
+const ThemeSelectionSchema = z.object({
+  selectedTheme: z.string(),
+  selectionRationale: z.string(),
+  rankings: z.array(ThemeRankingSchema),
+});
+
+export const CandidateThemesSchema = z.object({
+  themes: z.array(z.string()),
+});
 
 export interface ClaudeClient {
   /** Proposes fresh candidate themes so the pipeline never depends on a human having pre-populated theme-queue.json. */
@@ -92,7 +116,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       ],
     });
 
-    const result = parseToolResult<{ themes: string[] }>(message, tool.name);
+    const result = parseToolResult(message, tool.name, CandidateThemesSchema);
     return result.themes;
   }
 
@@ -135,7 +159,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       ],
     });
 
-    return parseToolResult<ThemeSelection>(message, tool.name);
+    return parseToolResult(message, tool.name, ThemeSelectionSchema);
   }
 
   async analyzeTheme(theme: string): Promise<ThemeAnalysis> {
@@ -174,14 +198,40 @@ export class AnthropicClaudeClient implements ClaudeClient {
       ],
     });
 
-    return parseToolResult<ThemeAnalysis>(message, tool.name);
+    return parseToolResult(message, tool.name, ThemeAnalysisSchema);
   }
 }
 
-function parseToolResult<T>(message: Anthropic.Message, toolName: string): T {
+/**
+ * Validates the tool call's input against its expected shape instead of
+ * trusting it with an unchecked cast. The Anthropic API is documented to
+ * always deliver tool_use input as parsed JSON, but a degraded response
+ * (e.g. a tool call that got cut off) can still arrive as a raw JSON
+ * string or with the wrong shape — this fails loudly right here, with a
+ * specific diagnostic, instead of letting garbage (like a JSON string
+ * silently spread into individual characters by a downstream ...spread)
+ * propagate into a confusing error three functions away.
+ */
+export function parseToolResult<T>(message: Anthropic.Message, toolName: string, schema: z.ZodType<T>): T {
   const block = message.content.find((b) => b.type === "tool_use" && b.name === toolName);
   if (!block || block.type !== "tool_use") {
     throw new Error(`Scout: Claude did not return a "${toolName}" tool call — cannot proceed without structured output.`);
   }
-  return block.input as T;
+
+  let input: unknown = block.input;
+  if (typeof input === "string") {
+    try {
+      input = JSON.parse(input);
+    } catch (err) {
+      throw new Error(
+        `Scout: Claude's "${toolName}" tool call returned a string that isn't valid JSON (${err instanceof Error ? err.message : err}): ${input}`
+      );
+    }
+  }
+
+  const result = schema.safeParse(input);
+  if (!result.success) {
+    throw new Error(`Scout: Claude's "${toolName}" tool call didn't match the expected shape: ${result.error.message}`);
+  }
+  return result.data;
 }
