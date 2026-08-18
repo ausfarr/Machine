@@ -1,25 +1,31 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 
 /**
  * Etch's one authorized external API call (see CLAUDE.md's "Authorized
  * external APIs" section). Every image produced here is disclosed in the
  * batch manifest as AI-generated (images.source === "etch").
  *
- * Uses Gemini's dedicated Imagen image-generation endpoint
- * (`models.generateImages`), not the general-purpose multimodal chat
- * endpoint (`models.generateContent`). A chat-style model like
- * gemini-2.5-flash-image is free to respond with text instead of (or in
- * addition to) an image — in practice it sometimes just describes the
- * image in prose rather than drawing it. generateImages's response type
- * has no text field at all, so that failure mode is structurally
- * impossible here, not just less likely.
+ * Uses Gemini's multimodal `models.generateContent` endpoint with
+ * `responseModalities: [IMAGE, TEXT]`, requesting a member of the Gemini
+ * 3.x image family (aka "Nano Banana"). The dedicated Imagen
+ * `models.generateImages`/`predict` endpoint this used to call was fully
+ * shut down (all Imagen model versions, including 3 and 4, were retired
+ * by Google) — `generateContent` is the only image-generation path Gemini
+ * still offers. That reintroduces the failure mode Imagen used to
+ * structurally rule out: a chat-style model can respond with prose
+ * instead of (or alongside) an image. Requesting TEXT as a secondary
+ * modality means that when it does, the response carries the explanation
+ * as diagnosable text rather than an unexplained empty result.
  */
 
-const DEFAULT_MODEL = "imagen-3.0-generate-002";
-/** Closest standard Imagen aspect ratio to an 8.5x11in portrait KDP page. */
+const DEFAULT_MODEL = "gemini-3.1-flash-image";
+/** Closest supported aspect ratio to an 8.5x11in portrait KDP page. */
 const IMAGE_ASPECT_RATIO = "3:4";
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1500;
+
+/** finishReasons that signal a deliberate content refusal — retrying won't help. */
+const REFUSAL_FINISH_REASONS = new Set(["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII", "RECITATION"]);
 
 export interface ImageGenClient {
   /** Generates one image for the given prompt and returns its raw bytes. */
@@ -36,13 +42,19 @@ function requireApiKey(): string {
   return key;
 }
 
-interface GeneratedImageLike {
-  image?: { imageBytes?: string };
-  raiFilteredReason?: string;
+interface PartLike {
+  inlineData?: { data?: string };
+  text?: string;
 }
 
-interface GenerateImagesResponseLike {
-  generatedImages?: GeneratedImageLike[];
+interface CandidateLike {
+  content?: { parts?: PartLike[] };
+  finishReason?: string;
+}
+
+interface GenerateContentResponseLike {
+  candidates?: CandidateLike[];
+  promptFeedback?: { blockReason?: string };
 }
 
 export interface InterpretedResponse {
@@ -58,18 +70,33 @@ export interface InterpretedResponse {
  * Pulled out as a pure function so the parsing/diagnostic logic is
  * unit-testable without mocking the Gemini SDK client.
  */
-export function interpretGenerateImagesResponse(response: GenerateImagesResponseLike): InterpretedResponse {
-  const first = response.generatedImages?.[0];
-
-  if (first?.image?.imageBytes) {
-    return { imageBase64: first.image.imageBytes, diagnostic: "", isDefiniteRefusal: false };
+export function interpretGenerateContentResponse(response: GenerateContentResponseLike): InterpretedResponse {
+  if (response.promptFeedback?.blockReason) {
+    return { diagnostic: `blockReason=${response.promptFeedback.blockReason}`, isDefiniteRefusal: true };
   }
 
-  // Imagen's own responsible-AI filter — a deliberate refusal, most likely
-  // because the prompt describes something sensitive (e.g. a vulnerable
-  // population). Retrying the identical prompt won't change that outcome.
-  if (first?.raiFilteredReason) {
-    return { diagnostic: `raiFilteredReason=${first.raiFilteredReason}`, isDefiniteRefusal: true };
+  const candidate = response.candidates?.[0];
+  const parts = candidate?.content?.parts ?? [];
+
+  const imagePart = parts.find((part) => part.inlineData?.data);
+  if (imagePart?.inlineData?.data) {
+    return { imageBase64: imagePart.inlineData.data, diagnostic: "", isDefiniteRefusal: false };
+  }
+
+  const text = parts
+    .map((part) => part.text)
+    .filter((t): t is string => Boolean(t))
+    .join(" ")
+    .trim();
+
+  const finishReason = candidate?.finishReason;
+  const isDefiniteRefusal = Boolean(finishReason && REFUSAL_FINISH_REASONS.has(finishReason));
+
+  if (finishReason || text) {
+    const diagnosticParts = [finishReason && `finishReason=${finishReason}`, text && `text="${text}"`].filter(
+      Boolean
+    );
+    return { diagnostic: diagnosticParts.join(", "), isDefiniteRefusal };
   }
 
   return {
@@ -115,12 +142,15 @@ export class GeminiImageClient implements ImageGenClient {
     let lastDiagnostic = "no diagnostic information in the response";
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      let response: Awaited<ReturnType<typeof this.client.models.generateImages>>;
+      let response: Awaited<ReturnType<typeof this.client.models.generateContent>>;
       try {
-        response = await this.client.models.generateImages({
+        response = await this.client.models.generateContent({
           model: this.model,
-          prompt,
-          config: { numberOfImages: 1, aspectRatio: IMAGE_ASPECT_RATIO, includeRaiReason: true },
+          contents: prompt,
+          config: {
+            responseModalities: [Modality.IMAGE, Modality.TEXT],
+            imageConfig: { aspectRatio: IMAGE_ASPECT_RATIO },
+          },
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -132,7 +162,7 @@ export class GeminiImageClient implements ImageGenClient {
         continue;
       }
 
-      const result = interpretGenerateImagesResponse(response);
+      const result = interpretGenerateContentResponse(response);
       if (result.imageBase64) {
         return Buffer.from(result.imageBase64, "base64");
       }
