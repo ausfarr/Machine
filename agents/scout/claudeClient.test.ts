@@ -32,8 +32,23 @@ describe("parseToolResult", () => {
     );
   });
 
-  it("throws a specific error when the parsed input doesn't match the schema", () => {
-    const message = fakeMessage("report_candidate_themes", { themes: "Cozy Cabins" });
+  it("throws a specific error when the parsed input doesn't match the schema, even with array-field recovery enabled", () => {
+    const message = fakeMessage("report_candidate_themes", { themes: "Cozy Cabins, not an array or JSON" });
+    expect(() => parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"])).toThrow(
+      /didn't match the expected shape/
+    );
+  });
+
+  it("recovers when an array-typed field is itself a JSON-encoded string, instead of failing", () => {
+    // Regression test: a real failure had Claude return { themes: '["Cozy Cabins", "Fantasy Castles"]' }
+    // — a JSON-encoded array *string* nested inside the (correctly parsed) outer object.
+    const message = fakeMessage("report_candidate_themes", { themes: JSON.stringify(["Cozy Cabins", "Fantasy Castles"]) });
+    const result = parseToolResult(message, "report_candidate_themes", CandidateThemesSchema, ["themes"]);
+    expect(result.themes).toEqual(["Cozy Cabins", "Fantasy Castles"]);
+  });
+
+  it("does not attempt array-field recovery unless the field is named in arrayFields", () => {
+    const message = fakeMessage("report_candidate_themes", { themes: JSON.stringify(["Cozy Cabins"]) });
     expect(() => parseToolResult(message, "report_candidate_themes", CandidateThemesSchema)).toThrow(
       /didn't match the expected shape/
     );
