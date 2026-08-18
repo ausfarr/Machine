@@ -116,7 +116,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       ],
     });
 
-    const result = parseToolResult(message, tool.name, CandidateThemesSchema);
+    const result = parseToolResult(message, tool.name, CandidateThemesSchema, ["themes"]);
     return result.themes;
   }
 
@@ -159,7 +159,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       ],
     });
 
-    return parseToolResult(message, tool.name, ThemeSelectionSchema);
+    return parseToolResult(message, tool.name, ThemeSelectionSchema, ["rankings"]);
   }
 
   async analyzeTheme(theme: string): Promise<ThemeAnalysis> {
@@ -198,21 +198,59 @@ export class AnthropicClaudeClient implements ClaudeClient {
       ],
     });
 
-    return parseToolResult(message, tool.name, ThemeAnalysisSchema);
+    return parseToolResult(message, tool.name, ThemeAnalysisSchema, ["keywordVariants"]);
   }
+}
+
+/**
+ * Claude's tool calls occasionally return an array-typed property as a
+ * JSON-encoded string instead of a real nested array (a known structured-
+ * output quirk, not specific to any one field). This coerces each named
+ * field back into an array before validation, rather than rejecting a
+ * perfectly recoverable response outright. A field that isn't a string,
+ * or a string that isn't valid JSON, or doesn't parse to an array, is
+ * left untouched — the schema below still reports a precise, honest
+ * validation error for anything genuinely malformed.
+ */
+function recoverStringifiedArrayFields(input: unknown, fields: string[]): unknown {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return input;
+  }
+  const record = input as Record<string, unknown>;
+  const fixed: Record<string, unknown> = { ...record };
+  for (const field of fields) {
+    const value = fixed[field];
+    if (typeof value !== "string") continue;
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        fixed[field] = parsed;
+      }
+    } catch {
+      // Not JSON — leave it as-is so schema validation reports the real problem.
+    }
+  }
+  return fixed;
 }
 
 /**
  * Validates the tool call's input against its expected shape instead of
  * trusting it with an unchecked cast. The Anthropic API is documented to
  * always deliver tool_use input as parsed JSON, but a degraded response
- * (e.g. a tool call that got cut off) can still arrive as a raw JSON
- * string or with the wrong shape — this fails loudly right here, with a
- * specific diagnostic, instead of letting garbage (like a JSON string
- * silently spread into individual characters by a downstream ...spread)
- * propagate into a confusing error three functions away.
+ * (e.g. a tool call that got cut off, or an array-typed field nested as a
+ * JSON string) can still arrive malformed — this fails loudly right here,
+ * with a specific diagnostic, instead of letting garbage (like a JSON
+ * string silently spread into individual characters by a downstream
+ * ...spread) propagate into a confusing error three functions away.
+ * `arrayFields` names any top-level properties expected to be arrays, so
+ * the JSON-encoded-string variant of that quirk can be recovered first.
  */
-export function parseToolResult<T>(message: Anthropic.Message, toolName: string, schema: z.ZodType<T>): T {
+export function parseToolResult<T>(
+  message: Anthropic.Message,
+  toolName: string,
+  schema: z.ZodType<T>,
+  arrayFields: string[] = []
+): T {
   const block = message.content.find((b) => b.type === "tool_use" && b.name === toolName);
   if (!block || block.type !== "tool_use") {
     throw new Error(`Scout: Claude did not return a "${toolName}" tool call — cannot proceed without structured output.`);
@@ -228,6 +266,8 @@ export function parseToolResult<T>(message: Anthropic.Message, toolName: string,
       );
     }
   }
+
+  input = recoverStringifiedArrayFields(input, arrayFields);
 
   const result = schema.safeParse(input);
   if (!result.success) {
