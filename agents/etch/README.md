@@ -22,19 +22,32 @@ sent along with Loom's shared `styleGuidance` string, and the result is
 resized to Bindery's minimum print resolution (2550x3300px, 300 DPI at
 8.5x11in) before being written to disk.
 
+## Which API call, and why
+
+Etch calls Gemini's dedicated **Imagen** image-generation endpoint
+(`models.generateImages`, default model `imagen-3.0-generate-002`), not
+the general-purpose multimodal chat endpoint (`models.generateContent`,
+the model behind e.g. `gemini-2.5-flash-image`). A chat-style model is
+free to respond with text instead of an image — in practice it
+occasionally just describes the image in prose ("Here are your whimsical
+cottagecore mushroom cottages...") rather than drawing it, which reads to
+Etch as "no image data" for no diagnosable reason. `generateImages`'s
+response type has no text field at all, so that failure mode is
+structurally impossible here, not just less likely. Override the model
+via `GEMINI_MODEL` if a newer Imagen version becomes available.
+
 If any single image fails to generate, Etch throws immediately and leaves
 the manifest at stage `prompted` rather than claiming the batch reached
 `imaged` with missing or placeholder pages — per the "fail loudly" and "no
 fabricated data" guardrails. Two distinct kinds of failure are handled
 differently:
 
-- **A response with no image, but a diagnosable reason** (a
-  `promptFeedback.blockReason`, a non-`STOP` `finishReason`, or
-  explanatory text) — most often Gemini's content-safety filters
-  declining the prompt (e.g. a theme phrased around a vulnerable
-  population, like "for anxious kids"). Not retried, since asking again
-  with the identical prompt won't change the outcome; the thrown error
-  includes the diagnostic so the prompt can be reworded.
+- **A response with no image, but a diagnosable reason** — Imagen's own
+  responsible-AI filter (`raiFilteredReason`) declining the prompt, most
+  often because it describes something sensitive (e.g. a theme phrased
+  around a vulnerable population, like "for anxious kids"). Not retried,
+  since asking again with the identical prompt won't change the outcome;
+  the thrown error includes the diagnostic so the prompt can be reworded.
 - **An HTTP-level failure from the API call itself** (a 5xx server error
   or a 429 rate limit — e.g. "got status: 503 ... Deadline expired before
   operation could complete") — retried up to 3 attempts total with

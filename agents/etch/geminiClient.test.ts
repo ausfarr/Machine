@@ -1,44 +1,37 @@
 import { describe, expect, it } from "vitest";
-import { interpretGenerateContentResponse, isRetryableApiError } from "./geminiClient.ts";
+import { interpretGenerateImagesResponse, isRetryableApiError } from "./geminiClient.ts";
 
-describe("interpretGenerateContentResponse", () => {
-  it("returns the image data when Gemini includes an inline image part", () => {
-    const result = interpretGenerateContentResponse({
-      candidates: [{ content: { parts: [{ inlineData: { data: "abc123" } }] }, finishReason: "STOP" }],
+describe("interpretGenerateImagesResponse", () => {
+  it("returns the image data when Imagen includes generated image bytes", () => {
+    const result = interpretGenerateImagesResponse({
+      generatedImages: [{ image: { imageBytes: "abc123" } }],
     });
     expect(result.imageBase64).toBe("abc123");
   });
 
-  it("flags a promptFeedback.blockReason as a definite refusal, not a transient error", () => {
-    const result = interpretGenerateContentResponse({
-      candidates: [{ content: { parts: [] } }],
-      promptFeedback: { blockReason: "SAFETY" },
+  it("flags a raiFilteredReason as a definite refusal, not a transient error", () => {
+    // Regression test: the general-purpose chat model (generateContent) could
+    // respond with prose instead of an image ("Here are your whimsical
+    // cottagecore mushroom cottages..."); generateImages's response type has
+    // no text field, so that failure mode can't happen here at all — the
+    // only "declined" shape is a filtered result with a reason attached.
+    const result = interpretGenerateImagesResponse({
+      generatedImages: [{ raiFilteredReason: "Blocked due to safety guidelines." }],
     });
     expect(result.imageBase64).toBeUndefined();
     expect(result.isDefiniteRefusal).toBe(true);
-    expect(result.diagnostic).toMatch(/blockReason=SAFETY/);
-  });
-
-  it("flags a non-STOP finishReason as a definite refusal", () => {
-    const result = interpretGenerateContentResponse({
-      candidates: [{ content: { parts: [] }, finishReason: "PROHIBITED_CONTENT" }],
-    });
-    expect(result.isDefiniteRefusal).toBe(true);
-    expect(result.diagnostic).toMatch(/finishReason=PROHIBITED_CONTENT/);
-  });
-
-  it("surfaces Gemini's own explanatory text when present", () => {
-    const result = interpretGenerateContentResponse({
-      candidates: [{ content: { parts: [{ text: "I can't create images of that." }] }, finishReason: "STOP" }],
-    });
-    expect(result.isDefiniteRefusal).toBe(true);
-    expect(result.diagnostic).toMatch(/Gemini said: "I can't create images of that\."/);
+    expect(result.diagnostic).toMatch(/raiFilteredReason=Blocked due to safety guidelines\./);
   });
 
   it("treats a genuinely empty response with no signal as a transient (retryable) case", () => {
-    const result = interpretGenerateContentResponse({ candidates: [{ content: { parts: [] }, finishReason: "STOP" }] });
+    const result = interpretGenerateImagesResponse({ generatedImages: [] });
     expect(result.isDefiniteRefusal).toBe(false);
     expect(result.diagnostic).toMatch(/transient API issue/);
+  });
+
+  it("treats a response with no generatedImages field at all as transient", () => {
+    const result = interpretGenerateImagesResponse({});
+    expect(result.isDefiniteRefusal).toBe(false);
   });
 });
 

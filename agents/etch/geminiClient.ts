@@ -4,9 +4,20 @@ import { GoogleGenAI } from "@google/genai";
  * Etch's one authorized external API call (see CLAUDE.md's "Authorized
  * external APIs" section). Every image produced here is disclosed in the
  * batch manifest as AI-generated (images.source === "etch").
+ *
+ * Uses Gemini's dedicated Imagen image-generation endpoint
+ * (`models.generateImages`), not the general-purpose multimodal chat
+ * endpoint (`models.generateContent`). A chat-style model like
+ * gemini-2.5-flash-image is free to respond with text instead of (or in
+ * addition to) an image — in practice it sometimes just describes the
+ * image in prose rather than drawing it. generateImages's response type
+ * has no text field at all, so that failure mode is structurally
+ * impossible here, not just less likely.
  */
 
-const DEFAULT_MODEL = "gemini-2.5-flash-image";
+const DEFAULT_MODEL = "imagen-3.0-generate-002";
+/** Closest standard Imagen aspect ratio to an 8.5x11in portrait KDP page. */
+const IMAGE_ASPECT_RATIO = "3:4";
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1500;
 
@@ -25,14 +36,13 @@ function requireApiKey(): string {
   return key;
 }
 
-interface ResponsePart {
-  inlineData?: { data?: string };
-  text?: string;
+interface GeneratedImageLike {
+  image?: { imageBytes?: string };
+  raiFilteredReason?: string;
 }
 
-interface GenerateContentResponseLike {
-  candidates?: { content?: { parts?: ResponsePart[] }; finishReason?: string }[];
-  promptFeedback?: { blockReason?: string };
+interface GenerateImagesResponseLike {
+  generatedImages?: GeneratedImageLike[];
 }
 
 export interface InterpretedResponse {
@@ -48,37 +58,24 @@ export interface InterpretedResponse {
  * Pulled out as a pure function so the parsing/diagnostic logic is
  * unit-testable without mocking the Gemini SDK client.
  */
-export function interpretGenerateContentResponse(response: GenerateContentResponseLike): InterpretedResponse {
-  const candidate = response.candidates?.[0];
-  const parts = candidate?.content?.parts ?? [];
-  const imagePart = parts.find((part) => part.inlineData?.data);
+export function interpretGenerateImagesResponse(response: GenerateImagesResponseLike): InterpretedResponse {
+  const first = response.generatedImages?.[0];
 
-  if (imagePart?.inlineData?.data) {
-    return { imageBase64: imagePart.inlineData.data, diagnostic: "", isDefiniteRefusal: false };
+  if (first?.image?.imageBytes) {
+    return { imageBase64: first.image.imageBytes, diagnostic: "", isDefiniteRefusal: false };
   }
 
-  const textExplanation = parts.find((part) => typeof part.text === "string" && part.text.trim().length > 0)?.text;
-  const blockReason = response.promptFeedback?.blockReason;
-  const finishReason = candidate?.finishReason;
+  // Imagen's own responsible-AI filter — a deliberate refusal, most likely
+  // because the prompt describes something sensitive (e.g. a vulnerable
+  // population). Retrying the identical prompt won't change that outcome.
+  if (first?.raiFilteredReason) {
+    return { diagnostic: `raiFilteredReason=${first.raiFilteredReason}`, isDefiniteRefusal: true };
+  }
 
-  const reasonFragments = [
-    blockReason && `promptFeedback.blockReason=${blockReason}`,
-    finishReason && finishReason !== "STOP" && `finishReason=${finishReason}`,
-    textExplanation && `Gemini said: "${textExplanation}"`,
-  ].filter((f): f is string => Boolean(f));
-
-  const diagnostic =
-    reasonFragments.length > 0
-      ? reasonFragments.join("; ")
-      : "no image data and no diagnostic information in the response (possibly a transient API issue)";
-
-  // Any explicit signal (a block reason, a non-STOP finish reason, or explanatory
-  // text) means Gemini deliberately declined this prompt — most likely its content
-  // safety filters, since coloring-book prompts sometimes describe children or other
-  // sensitive subjects. Retrying the identical prompt won't change that outcome.
-  const isDefiniteRefusal = reasonFragments.length > 0;
-
-  return { diagnostic, isDefiniteRefusal };
+  return {
+    diagnostic: "no generated image and no diagnostic information in the response (possibly a transient API issue)",
+    isDefiniteRefusal: false,
+  };
 }
 
 function sleep(ms: number): Promise<void> {
@@ -118,11 +115,12 @@ export class GeminiImageClient implements ImageGenClient {
     let lastDiagnostic = "no diagnostic information in the response";
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      let response: Awaited<ReturnType<typeof this.client.models.generateContent>>;
+      let response: Awaited<ReturnType<typeof this.client.models.generateImages>>;
       try {
-        response = await this.client.models.generateContent({
+        response = await this.client.models.generateImages({
           model: this.model,
-          contents: prompt,
+          prompt,
+          config: { numberOfImages: 1, aspectRatio: IMAGE_ASPECT_RATIO, includeRaiReason: true },
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -134,7 +132,7 @@ export class GeminiImageClient implements ImageGenClient {
         continue;
       }
 
-      const result = interpretGenerateContentResponse(response);
+      const result = interpretGenerateImagesResponse(response);
       if (result.imageBase64) {
         return Buffer.from(result.imageBase64, "base64");
       }
