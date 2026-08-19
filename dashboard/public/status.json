@@ -1,73 +1,120 @@
 {
-  "generatedAt": "2026-08-18T21:08:09.182Z",
+  "generatedAt": "2026-08-19T14:05:02.917Z",
   "summary": {
-    "totalBatches": 0,
+    "totalBatches": 1,
     "invalidBatchCount": 0,
     "byStage": {
       "researched": 0,
       "prompted": 0,
       "imaged": 0,
       "assembled": 0,
-      "listed": 0,
+      "listed": 1,
       "published": 0
     },
-    "batchesInProgress": 0
+    "batchesInProgress": 1
   },
-  "batches": [],
+  "batches": [
+    {
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "stage": "listed",
+      "createdAt": "2026-08-19T14:04:03.333Z",
+      "updatedAt": "2026-08-19T14:05:02.624Z",
+      "scout": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:04:03.333Z",
+          "competitionLevel": "medium"
+        }
+      },
+      "loom": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:04:13.800Z",
+          "promptCount": 4
+        }
+      },
+      "images": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T14:04:52.746Z",
+          "count": 4,
+          "source": "etch"
+        }
+      },
+      "bindery": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:05:02.622Z",
+          "pageCount": 4
+        }
+      },
+      "crier": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:05:02.624Z",
+          "aiGeneratedDisclosure": true
+        }
+      },
+      "published": {
+        "done": false
+      }
+    }
+  ],
   "invalidBatches": [],
   "agents": [
     {
       "agent": "scout",
-      "status": "not_yet_run",
-      "lastRanAt": null,
+      "status": "active",
+      "lastRanAt": "2026-08-19T14:04:03.333Z",
       "metric": {
         "label": "Themes researched",
-        "value": 0
+        "value": 1
       }
     },
     {
       "agent": "loom",
-      "status": "not_yet_run",
-      "lastRanAt": null,
+      "status": "active",
+      "lastRanAt": "2026-08-19T14:04:13.800Z",
       "metric": {
         "label": "Prompts generated",
-        "value": 0
+        "value": 4
       }
     },
     {
       "agent": "etch",
-      "status": "not_yet_run",
-      "lastRanAt": null,
+      "status": "active",
+      "lastRanAt": "2026-08-19T14:04:52.746Z",
       "metric": {
         "label": "Images generated",
-        "value": 0
+        "value": 4
       }
     },
     {
       "agent": "bindery",
-      "status": "not_yet_run",
-      "lastRanAt": null,
+      "status": "active",
+      "lastRanAt": "2026-08-19T14:05:02.622Z",
       "metric": {
         "label": "Interiors assembled",
-        "value": 0
+        "value": 1
       }
     },
     {
       "agent": "crier",
-      "status": "not_yet_run",
-      "lastRanAt": null,
+      "status": "active",
+      "lastRanAt": "2026-08-19T14:05:02.624Z",
       "metric": {
         "label": "Listings written",
-        "value": 0
+        "value": 1
       }
     },
     {
       "agent": "ledger",
       "status": "active",
-      "lastRanAt": "2026-08-18T21:08:09.182Z",
+      "lastRanAt": "2026-08-19T14:05:02.917Z",
       "metric": {
         "label": "Batches tracked",
-        "value": 0
+        "value": 1
       }
     },
     {
@@ -89,5 +136,41 @@
       }
     }
   ],
-  "activity": []
+  "activity": [
+    {
+      "at": "2026-08-19T14:05:02.624Z",
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "actor": "crier",
+      "summary": "Crier wrote the KDP listing copy for \"Whimsical mushroom houses with tiny woodland doors\""
+    },
+    {
+      "at": "2026-08-19T14:05:02.622Z",
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 4-page interior for \"Whimsical mushroom houses with tiny woodland doors\""
+    },
+    {
+      "at": "2026-08-19T14:04:52.746Z",
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "actor": "etch",
+      "summary": "Etch generated 4 image(s) for \"Whimsical mushroom houses with tiny woodland doors\""
+    },
+    {
+      "at": "2026-08-19T14:04:13.800Z",
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "actor": "loom",
+      "summary": "Loom wrote 4 image prompts for \"Whimsical mushroom houses with tiny woodland doors\""
+    },
+    {
+      "at": "2026-08-19T14:04:03.333Z",
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "actor": "scout",
+      "summary": "Scout researched \"Whimsical mushroom houses with tiny woodland doors\" (competition: medium)"
+    }
+  ]
 }

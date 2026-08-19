@@ -1,0 +1,43 @@
+# Scout Research Report: Whimsical mushroom houses with tiny woodland doors
+
+Generated: 2026-08-19T14:04:03.333Z
+
+> Competition, angle, and keyword signals below are the Anthropic API's estimate, generated from its own knowledge — not live Amazon/Google search-volume data. Scout discloses this so the estimate is never mistaken for real market data.
+
+## Competition estimate: MEDIUM
+
+Mushroom-themed coloring books are a well-established cottagecore/fairycore niche on KDP with many existing titles (mushroom coloring books, fairy garden coloring books), so general "mushroom coloring book" searches face real competition. However, the specific micro-niche of "mushroom houses with tiny doors" is narrower and less saturated - most competitors focus on realistic mushrooms, psychedelic mushrooms, or generic fairy houses rather than the whimsical architectural door/window details on fungi specifically. This creates a mid-level competition pocket: enough existing demand signal (proven mushroom/fairycore audience) but not yet flooded with the specific "tiny door" angle.
+
+## Suggested angle
+
+Lean into a "storybook architecture" angle: each page features a different mushroom house with a unique tiny door, window, staircase, mailbox, or garden path (acorn-cap roofs, gnome doorbells, spiral vine staircases), turning it into a magical "tour of tiny homes" rather than generic mushroom coloring pages. Add a light narrative thread (e.g., "visit 30 tiny mushroom cottages in the enchanted forest") and vary line complexity across pages so it appeals to both younger colorists (simple pages) and adult cottagecore/fairycore fans (intricate detailed pages), positioning it at the intersection of two audiences other books don't combine.
+
+## Candidate keyword variants
+
+- mushroom house coloring book
+- whimsical mushroom coloring book
+- fairy mushroom houses coloring book
+- cottagecore coloring book mushrooms
+- tiny door coloring book
+- enchanted forest coloring book adults
+- mushroom cottage coloring pages
+- fairycore coloring book for adults
+
+## Why this theme was selected
+
+This theme offers the best balance of evergreen, cross-generational appeal (fairycore/cottagecore aesthetics remain consistently popular), strong visual iconicity that translates well to coloring book line art, and room for differentiation through unique door/window details, seasonal variants, and series expansion. Unlike mandalas or cottagecore kitchens, the competition is less dominated by a handful of major established listings, and unlike dragons-in-teacups or steam locomotives, it has a broader built-in audience (both children and adults love fairy house imagery), making it the most promising next theme to develop and validate further with keyword-level research."
+
+### All candidates considered
+
+- **Whimsical mushroom houses with tiny woodland doors** (score 84): This taps into the extremely popular cottagecore/fairycore aesthetic that has strong evergreen appeal across kids and adults alike. Mushroom house/fairy door imagery is highly Pinterest/Etsy friendly, giving good organic discovery outside Amazon too. Competition exists but is fragmented across many small sellers rather than dominated by a few mega-listings, leaving room for a well-differentiated entry (e.g. unique door designs, seasonal variations, intricate linework). Strong potential for series expansion (seasons, night editions, holiday doors) which helps with long-tail keyword capture and repeat buyers.
+- **Cozy cottagecore kitchens with herbs and baked goods** (score 76): Cottagecore remains a strong, evergreen trend with a dedicated adult coloring audience. Kitchen/herb/baking imagery is soothing and detail-rich, ideal for intricate adult coloring pages. However, this niche is more saturated than mushroom houses since 'cottagecore' coloring books have proliferated broadly, and the kitchen sub-theme is less visually distinctive/iconic than mushroom houses, making differentiation somewhat harder.
+- **Art Nouveau botanical mandalas with flowing vines** (score 70): Mandala and Art Nouveau florals are a classic, always-in-demand adult coloring category with proven long-term sales history, but this also means the space is heavily saturated with thousands of similar listings from established publishers. Differentiation is difficult unless combined with a strong unique twist; evergreen appeal is high but competitive intensity offsets the opportunity somewhat.
+- **Mythical dragons curled up in tiny teacups** (score 68): Highly whimsical and unique concept with strong cuteness/novelty factor that could stand out via distinctive keyword search terms ('dragon teacup coloring book'). Appeals to both kids and fantasy-loving adults. Slightly narrower audience than cottagecore/fairy themes and less proven track record, adding some risk, but the novelty could translate into strong differentiation and shareability.
+- **Vintage steam locomotives crossing mountain bridges** (score 55): Niche appeal mostly to train enthusiasts and nostalgic adult colorists, a smaller and more specific audience. Less evergreen cross-demographic appeal compared to fairycore/mandala themes, and technical machinery scenes can be harder to render in a satisfying, easy-to-color style for the broader coloring book market.
+
+## Next step
+
+Scout selected and researched this theme automatically via the Anthropic
+API (see CLAUDE.md's Authorized external APIs section) — there is no
+separate human greenlight step before Loom runs on it. A human still
+reviews the batch at the pull request stage, before anything is published.
