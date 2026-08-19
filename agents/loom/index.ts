@@ -5,7 +5,9 @@ import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts"
 import {
   COMPOSITION_TEMPLATES,
   STYLE_GUIDANCE,
+  buildCoverPrompt,
   buildPrompt,
+  generateBackCoverBlurbDraft,
   generateBackMatterDraft,
   generateFrontMatterDraft,
 } from "./templates.ts";
@@ -33,6 +35,7 @@ interface PromptsFile {
   generatedAt: string;
   styleGuidance: string;
   prompts: PromptEntry[];
+  cover: { prompt: string };
 }
 
 export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunResult {
@@ -75,10 +78,12 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
     generatedAt,
     styleGuidance: STYLE_GUIDANCE,
     prompts,
+    cover: { prompt: buildCoverPrompt(theme) },
   };
 
   const frontMatterDraft = generateFrontMatterDraft(theme);
   const backMatterDraft = generateBackMatterDraft(theme);
+  const backCoverBlurbDraft = generateBackCoverBlurbDraft(theme);
 
   const promptsPath = join(batchDir, "prompts.json");
   writeFileSync(promptsPath, JSON.stringify(promptsFile, null, 2));
@@ -98,6 +103,7 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
       promptCount,
       frontMatterDraft,
       backMatterDraft,
+      backCoverBlurbDraft,
       completedAt: generatedAt,
     },
   };

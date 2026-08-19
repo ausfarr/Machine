@@ -9,6 +9,18 @@
 export const STYLE_GUIDANCE =
   "Black-and-white line art only: bold, clean outlines, no shading, no gradients, no color, no gray fill, white background. Designed for an 8.5x11in KDP coloring book interior page, single subject per page unless the prompt says otherwise.";
 
+/**
+ * Front covers are the one full-color image in a batch — unlike the
+ * black-and-white interior, this needs to sell the book at Amazon
+ * thumbnail size. Explicitly told not to render legible text: Bindery
+ * composites the real, guaranteed-legible title/subtitle/author text on
+ * top afterward, so any words the model attempts here are decorative at
+ * best and unreliable at worst (image models are prone to misspelling
+ * rendered text).
+ */
+export const COVER_STYLE_GUIDANCE =
+  "Full-color, vibrant, richly detailed illustration suitable as a KDP coloring book front cover — eye-catching even at small thumbnail size. Do not render any legible words, letters, or text; decorative flourishes are fine, but leave room in the composition for a title to be overlaid afterward. Portrait orientation.";
+
 export const COMPOSITION_TEMPLATES: readonly string[] = [
   "A close-up view of {theme}, bold clean linework, no shading, no color, white background, coloring book page.",
   "A wide establishing shot of {theme} with layered background detail, bold outlines, no color, coloring book page.",
@@ -46,6 +58,10 @@ export function buildPrompt(theme: string, template: string): string {
   return template.replace("{theme}", theme);
 }
 
+export function buildCoverPrompt(theme: string): string {
+  return `A striking front-cover illustration capturing the essence of ${theme.toLowerCase()}, warm and inviting, suitable to sell a coloring book at a glance.`;
+}
+
 export function generateFrontMatterDraft(theme: string): string {
   return [
     `Title page: "${theme}: A Coloring Book"`,
@@ -60,4 +76,14 @@ export function generateBackMatterDraft(theme: string): string {
     `If you enjoyed this book, a short review helps other colorists find it — we'd be grateful for a few words.`,
     `Look for more coloring books in this series.`,
   ].join("\n\n");
+}
+
+/**
+ * Short draft for the printed back cover — punchier and shorter than
+ * Crier's KDP listing description, since it has to fit a physical back
+ * panel rather than an Amazon product page. A human can edit this like the
+ * other front/back-matter drafts before it's baked into cover.pdf.
+ */
+export function generateBackCoverBlurbDraft(theme: string): string {
+  return `Unwind with original ${theme.toLowerCase()} illustrations, hand-picked for relaxed, unhurried coloring. Bold outlines, single-sided pages — just pick a page and start creating.`;
 }

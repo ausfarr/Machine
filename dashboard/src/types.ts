@@ -18,6 +18,7 @@ export interface BatchStatus {
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
+  coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
   crier: StageStatus<{ completedAt: string; aiGeneratedDisclosure: true }>;
   published: StageStatus<{ publishedAt: string }>;

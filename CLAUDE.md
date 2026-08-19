@@ -36,8 +36,9 @@ exist, each scoped to one agent (two distinct keys — Sentinel reuses Scout's
   pipeline had: Scout's theme choice is now the automated decision, not a
   human one. Requires `ANTHROPIC_API_KEY`.
 - **Gemini API** — used by **Etch** (see below) to generate the actual
-  interior images from Loom's prompts. This replaces the earlier
-  human-runs-an-external-tool-by-hand step. Requires `GEMINI_API_KEY`.
+  interior images from Loom's prompts, plus one front-cover art image per
+  batch. This replaces the earlier human-runs-an-external-tool-by-hand step.
+  Requires `GEMINI_API_KEY`.
 - **Anthropic API (Claude)** — used by **Sentinel** to diagnose CI/test
   failures and draft fix PRs against this repo. Scoped to this repo's own
   code and workflows only; never touches batch data, KDP, or any external
@@ -60,18 +61,18 @@ Each agent is a self-contained script with one job.
 
 ### Loom — prompt generation
 - Input: the theme Scout selected
-- Output: a batch of 20–30 image prompts (`.json`), formatted for Etch (and still usable by hand in an external tool if a human wants to bypass Etch), plus draft front/back matter text
+- Output: a batch of 20–30 image prompts (`.json`), formatted for Etch (and still usable by hand in an external tool if a human wants to bypass Etch), plus draft front/back matter text, one front-cover art prompt, and a draft back-cover blurb
 - Does not call any image generation API itself — it only writes prompts. Etch is the agent that turns them into images.
 
 ### Etch — image generation
 - Input: `prompts.json` from an approved (`prompted`-stage) batch
-- Output: one generated image per prompt in `/batches/{batch-id}/images/`, meeting Bindery's minimum resolution for print
-- Calls the Gemini API per the authorization above. Fails loudly and leaves the manifest at its prior stage if any image fails to generate, rather than assembling a batch with missing or placeholder pages. A human can still hand-supply or replace images in this folder instead of/in addition to running Etch — Bindery accepts either.
+- Output: one generated image per prompt in `/batches/{batch-id}/images/`, plus one front-cover art image at `/batches/{batch-id}/cover-art.png`, meeting Bindery's minimum resolution for print
+- Calls the Gemini API per the authorization above. Fails loudly and leaves the manifest at its prior stage if any image (interior page or cover art) fails to generate, rather than assembling a batch with missing or placeholder pages. A human can still hand-supply or replace images in this folder, or `cover-art.png`, instead of/in addition to running Etch — Bindery accepts either.
 
-### Bindery — interior assembly
-- Input: a folder of final images (`/batches/{batch-id}/images/`) — from Etch, a human, or both
-- Output: a print-ready interior PDF meeting KDP's trim size, margin, and bleed specs (8.5x11 default)
-- Validates image count, resolution, and page order before assembling; fails loudly if anything's missing rather than silently producing a broken file
+### Bindery — interior + cover assembly
+- Input: a folder of final images (`/batches/{batch-id}/images/`) and a front-cover art image (`/batches/{batch-id}/cover-art.png`) — each from Etch, a human, or both
+- Output: a print-ready interior PDF meeting KDP's trim size, margin, and bleed specs (8.5x11 default), plus a print-ready full-wrap cover PDF (front + spine + back) sized to KDP's spine-width formula and bleed specs — compositing the cover art with programmatically drawn title/subtitle/author text (so the cover is legible regardless of what the image model rendered) and the back-cover blurb
+- Validates image count, resolution, page order, and cover art presence before assembling; fails loudly if anything's missing rather than silently producing a broken file
 
 ### Crier — listing metadata
 - Input: the approved batch (theme, title candidates, front/back matter)
@@ -157,7 +158,9 @@ Each batch lives in `/batches/{batch-id}/` with a `manifest.json` tracking its s
     research.md
     prompts.json
     images/        (Etch-generated, or human-supplied/edited)
+    cover-art.png  (Etch-generated, or human-supplied/edited)
     interior.pdf
+    cover.pdf
     listing.json
 /dashboard
 /.github/workflows

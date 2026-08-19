@@ -34,9 +34,12 @@ describe("runLoom", () => {
     // every prompt must be unique text
     const promptTexts = promptsFile.prompts.map((p: { prompt: string }) => p.prompt);
     expect(new Set(promptTexts).size).toBe(promptTexts.length);
+    expect(promptsFile.cover.prompt.toLowerCase()).toContain("fantasy castles");
 
     const frontBack = readFileSync(result.frontBackMatterPath, "utf-8");
     expect(frontBack).toContain("Fantasy Castles");
+
+    expect(manifest.loom?.backCoverBlurbDraft.toLowerCase()).toContain("fantasy castles");
   });
 
   it("refuses to run on a batch that isn't at stage researched", async () => {

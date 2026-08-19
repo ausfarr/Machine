@@ -26,6 +26,7 @@ export interface BatchStatus {
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
+  coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
   crier: StageStatus<{ completedAt: string; aiGeneratedDisclosure: true }>;
   published: StageStatus<{ publishedAt: string }>;
@@ -107,6 +108,9 @@ function toBatchStatus(manifest: BatchManifest): BatchStatus {
       : { done: false },
     images: manifest.images
       ? { done: true, detail: { addedAt: manifest.images.addedAt, count: manifest.images.count, source: manifest.images.source } }
+      : { done: false },
+    coverArt: manifest.coverArt
+      ? { done: true, detail: { addedAt: manifest.coverArt.addedAt, source: manifest.coverArt.source } }
       : { done: false },
     bindery: manifest.bindery
       ? { done: true, detail: { completedAt: manifest.bindery.completedAt, pageCount: manifest.bindery.pageCount } }

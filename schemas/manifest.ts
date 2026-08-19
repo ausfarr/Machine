@@ -36,6 +36,8 @@ export const LoomResultSchema = z.object({
   promptCount: z.number().int().min(1).max(30),
   frontMatterDraft: z.string(),
   backMatterDraft: z.string(),
+  /** Draft blurb for the printed back cover — distinct from Crier's longer KDP listing description. */
+  backCoverBlurbDraft: z.string(),
   completedAt: isoTimestamp,
 });
 export type LoomResult = z.infer<typeof LoomResultSchema>;
@@ -49,11 +51,27 @@ export const ImagesResultSchema = z.object({
 });
 export type ImagesResult = z.infer<typeof ImagesResultSchema>;
 
-/** Bindery's output: a validated, print-ready interior PDF. */
+/**
+ * Set once a front-cover art image exists at batches/{id}/cover-art.png,
+ * whether Etch generated it or a human supplied/replaced it. Optional (like
+ * ImagesResultSchema) so manifests created before cover generation existed
+ * stay valid — Bindery enforces its actual presence operationally rather
+ * than this schema retroactively invalidating older batches.
+ */
+export const CoverArtResultSchema = z.object({
+  path: z.string(),
+  addedAt: isoTimestamp,
+  source: z.enum(["etch", "human"]),
+});
+export type CoverArtResult = z.infer<typeof CoverArtResultSchema>;
+
+/** Bindery's output: a validated, print-ready interior PDF (plus a wrap cover PDF, once cover art exists). */
 export const BinderyResultSchema = z.object({
   interiorPdfPath: z.string(),
   trimSize: z.string(),
   pageCount: z.number().int().positive(),
+  /** Optional for the same reason as CoverArtResultSchema — absent on batches assembled before cover generation existed. */
+  coverPdfPath: z.string().optional(),
   completedAt: isoTimestamp,
 });
 export type BinderyResult = z.infer<typeof BinderyResultSchema>;
@@ -86,6 +104,7 @@ export const BatchManifestSchema = z.object({
   scout: ScoutResultSchema.optional(),
   loom: LoomResultSchema.optional(),
   images: ImagesResultSchema.optional(),
+  coverArt: CoverArtResultSchema.optional(),
   bindery: BinderyResultSchema.optional(),
   crier: CrierResultSchema.optional(),
   published: PublishedResultSchema.optional(),
