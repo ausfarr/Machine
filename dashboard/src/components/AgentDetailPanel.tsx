@@ -6,6 +6,8 @@ import { assetUrl, formatDate, formatRelative } from "../lib/format";
 /** Whether a given agent's real work appears on this batch — mirrors Ledger's own per-agent filters. */
 function agentTouchedBatch(agent: AgentKey, batch: BatchStatus): boolean {
   switch (agent) {
+    case "opportunityScanner":
+      return batch.opportunityScanner.done;
     case "scout":
       return batch.scout.done;
     case "loom":

@@ -4,12 +4,14 @@ AI-assisted content pipeline for publishing coloring books to Amazon KDP. See `C
 
 ## Status
 
-All build-order steps are complete: repo scaffold, Scout, Loom, Bindery, Crier, Ledger + dashboard, GitHub Actions workflows, and Etch (image generation) with full pipeline automation. Scout now selects and researches themes via the Anthropic API, and Etch generates interior images via the Gemini API — see CLAUDE.md's "Authorized external APIs" section. Nothing here auto-publishes — every batch still ends in a pull request for human review.
+All v1 build-order steps are complete: repo scaffold, Scout, Loom, Bindery, Crier, Ledger + dashboard, GitHub Actions workflows, and Etch (image generation) with full pipeline automation. Scout now selects and researches themes via the Anthropic API, and Etch generates interior images via the Gemini API — see CLAUDE.md's "Authorized external APIs" section. Nothing here auto-publishes — every batch still ends in a pull request for human review.
+
+v2 (multi-category expansion) is in progress — see CLAUDE.md's "Build order". Opportunity Scanner (weekly KDP category selection, live web_search-grounded) is built and runnable standalone (`npm run opportunity-scanner`), but not yet wired into `npm run process-queue` or the scheduled pipeline workflow — that lands once Scout, Loom/Etch, and Writer are updated to consume its output.
 
 ## Structure
 
 ```
-/agents      one folder per agent (scout, loom, etch, bindery, crier, ledger)
+/agents      one folder per agent (opportunity-scanner, scout, loom, etch, bindery, crier, ledger)
 /batches     per-batch working data, created at runtime — none yet
 /dashboard   status dashboard (React + Vite + Tailwind), deployed via GitHub Pages
 /schemas     the batch manifest schema (zod) and its stage-progression rules
@@ -36,6 +38,7 @@ npm run typecheck          # TypeScript type checking
 npm test                   # run the test suite (vitest)
 npm run validate:manifest -- <path-to-manifest.json>   # validate a batch manifest
 
+npm run opportunity-scanner          # pick this week's KDP category (standalone, not yet wired into process-queue)
 npm run scout -- "a rough theme"     # research one theme directly, create a batch
 npm run loom -- <batch-id>           # generate prompts for a researched batch
 npm run etch -- <batch-id>           # generate images for a prompted batch via Gemini

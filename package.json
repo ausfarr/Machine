@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "AI-assisted content pipeline for publishing coloring books to Amazon KDP.",
+  "description": "AI-assisted content pipeline for publishing books to Amazon KDP.",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "validate:manifest": "tsx scripts/validate-manifest.ts",
+    "opportunity-scanner": "tsx agents/opportunity-scanner/cli.ts",
     "scout": "tsx agents/scout/cli.ts",
     "loom": "tsx agents/loom/cli.ts",
     "etch": "tsx agents/etch/cli.ts",
@@ -21,7 +22,7 @@
     "generate:cover": "tsx scripts/generate-cover-for-batch.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
+    "@anthropic-ai/sdk": "^0.119.0",
     "@google/genai": "^2.17.1",
     "pdf-lib": "^1.17.1",
     "sharp": "^0.35.3",

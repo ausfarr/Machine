@@ -26,6 +26,8 @@ const SHARED_STYLE =
   "no logos, no watermark, square aspect ratio, high detail digital art.";
 
 const VISUAL_MOTIFS: Record<string, string> = {
+  opportunityScanner:
+    "A perceptive figure with a wide, panoramic gaze fixed on the far distance, calm and appraising, head tilted slightly as if weighing many possibilities at once. A faint glowing radar-sweep / horizon-line arcs across their brow, one point along it lit brighter than the rest.",
   scout:
     "A young man with short dark hair and a focused, scanning gaze, chin " +
     "slightly lifted as if reading a distant horizon. A faint glowing " +

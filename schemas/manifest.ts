@@ -18,6 +18,25 @@ export type BatchStage = z.infer<typeof BatchStageSchema>;
 
 const isoTimestamp = z.string().datetime({ offset: true });
 
+export const ContentTypeSchema = z.enum(["illustrated", "text"]);
+export type ContentType = z.infer<typeof ContentTypeSchema>;
+
+/**
+ * Opportunity Scanner's output: the KDP category/format it selected for
+ * this batch, grounded in live web_search signal (see CLAUDE.md's
+ * Authorized external APIs section). `contentType` is what routes the
+ * pipeline to Loom+Etch (illustrated) or Writer (text) downstream.
+ */
+export const OpportunityScannerResultSchema = z.object({
+  category: z.string(),
+  contentType: ContentTypeSchema,
+  selectionRationale: z.string(),
+  reportJsonPath: z.string(),
+  reportMdPath: z.string(),
+  completedAt: isoTimestamp,
+});
+export type OpportunityScannerResult = z.infer<typeof OpportunityScannerResultSchema>;
+
 /** Scout's output: niche/keyword research on a candidate theme. */
 export const ScoutResultSchema = z.object({
   reportJsonPath: z.string(),
@@ -117,6 +136,8 @@ export const BatchManifestSchema = z.object({
   theme: z.string().min(1),
   createdAt: isoTimestamp,
   updatedAt: isoTimestamp,
+  /** Absent for a batch created by directly invoking `npm run scout` on a single theme, bypassing category selection for manual testing. */
+  opportunityScanner: OpportunityScannerResultSchema.optional(),
   scout: ScoutResultSchema.optional(),
   loom: LoomResultSchema.optional(),
   images: ImagesResultSchema.optional(),

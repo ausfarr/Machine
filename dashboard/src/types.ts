@@ -15,6 +15,7 @@ export interface BatchStatus {
   stage: BatchStage;
   createdAt: string;
   updatedAt: string;
+  opportunityScanner: StageStatus<{ completedAt: string; category: string; contentType: "illustrated" | "text" }>;
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
@@ -36,7 +37,17 @@ export interface InvalidBatch {
 }
 
 /** Real agent modules from CLAUDE.md's Agents section, in build order. */
-export const AGENT_KEYS = ["scout", "loom", "etch", "bindery", "crier", "ledger", "sentinel", "analyst"] as const;
+export const AGENT_KEYS = [
+  "opportunityScanner",
+  "scout",
+  "loom",
+  "etch",
+  "bindery",
+  "crier",
+  "ledger",
+  "sentinel",
+  "analyst",
+] as const;
 export type AgentKey = (typeof AGENT_KEYS)[number];
 
 export type AgentRunStatus = "active" | "idle" | "not_yet_run";

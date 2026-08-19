@@ -25,6 +25,14 @@ export interface AgentPersona {
 
 export const AGENT_PERSONAS: AgentPersona[] = [
   {
+    agent: "opportunityScanner",
+    personaName: "VANTAGE",
+    tagline: "Surveys the whole shelf before choosing where to stand.",
+    subtitle: "Opportunity Scanner · weekly category selection",
+    portrait: "agents/opportunityScanner.png",
+    accent: "#f97316",
+  },
+  {
     agent: "scout",
     personaName: "ATLAS",
     tagline: "Maps the niche before anyone else finds it.",
