@@ -1,19 +1,65 @@
 {
-  "generatedAt": "2026-08-19T14:05:02.917Z",
+  "generatedAt": "2026-08-19T15:00:04.108Z",
   "summary": {
-    "totalBatches": 1,
+    "totalBatches": 2,
     "invalidBatchCount": 0,
     "byStage": {
       "researched": 0,
       "prompted": 0,
       "imaged": 0,
       "assembled": 0,
-      "listed": 1,
+      "listed": 2,
       "published": 0
     },
-    "batchesInProgress": 1
+    "batchesInProgress": 2
   },
   "batches": [
+    {
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "stage": "listed",
+      "createdAt": "2026-08-19T14:59:07.440Z",
+      "updatedAt": "2026-08-19T15:00:03.708Z",
+      "scout": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:59:07.440Z",
+          "competitionLevel": "medium"
+        }
+      },
+      "loom": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:59:17.940Z",
+          "promptCount": 4
+        }
+      },
+      "images": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T14:59:51.299Z",
+          "count": 4,
+          "source": "etch"
+        }
+      },
+      "bindery": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T15:00:03.705Z",
+          "pageCount": 4
+        }
+      },
+      "crier": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T15:00:03.708Z",
+          "aiGeneratedDisclosure": true
+        }
+      },
+      "published": {
+        "done": false
+      }
+    },
     {
       "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
       "theme": "Whimsical mushroom houses with tiny woodland doors",
@@ -66,55 +112,55 @@
     {
       "agent": "scout",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:04:03.333Z",
+      "lastRanAt": "2026-08-19T14:59:07.440Z",
       "metric": {
         "label": "Themes researched",
-        "value": 1
+        "value": 2
       }
     },
     {
       "agent": "loom",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:04:13.800Z",
+      "lastRanAt": "2026-08-19T14:59:17.940Z",
       "metric": {
         "label": "Prompts generated",
-        "value": 4
+        "value": 8
       }
     },
     {
       "agent": "etch",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:04:52.746Z",
+      "lastRanAt": "2026-08-19T14:59:51.299Z",
       "metric": {
         "label": "Images generated",
-        "value": 4
+        "value": 8
       }
     },
     {
       "agent": "bindery",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:05:02.622Z",
+      "lastRanAt": "2026-08-19T15:00:03.705Z",
       "metric": {
         "label": "Interiors assembled",
-        "value": 1
+        "value": 2
       }
     },
     {
       "agent": "crier",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:05:02.624Z",
+      "lastRanAt": "2026-08-19T15:00:03.708Z",
       "metric": {
         "label": "Listings written",
-        "value": 1
+        "value": 2
       }
     },
     {
       "agent": "ledger",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:05:02.917Z",
+      "lastRanAt": "2026-08-19T15:00:04.108Z",
       "metric": {
         "label": "Batches tracked",
-        "value": 1
+        "value": 2
       }
     },
     {
@@ -137,6 +183,41 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-08-19T15:00:03.708Z",
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "actor": "crier",
+      "summary": "Crier wrote the KDP listing copy for \"Cozy witch cottages with potion gardens\""
+    },
+    {
+      "at": "2026-08-19T15:00:03.705Z",
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 4-page interior for \"Cozy witch cottages with potion gardens\""
+    },
+    {
+      "at": "2026-08-19T14:59:51.299Z",
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "actor": "etch",
+      "summary": "Etch generated 4 image(s) for \"Cozy witch cottages with potion gardens\""
+    },
+    {
+      "at": "2026-08-19T14:59:17.940Z",
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "actor": "loom",
+      "summary": "Loom wrote 4 image prompts for \"Cozy witch cottages with potion gardens\""
+    },
+    {
+      "at": "2026-08-19T14:59:07.440Z",
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "actor": "scout",
+      "summary": "Scout researched \"Cozy witch cottages with potion gardens\" (competition: medium)"
+    },
     {
       "at": "2026-08-19T14:05:02.624Z",
       "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",

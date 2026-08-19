@@ -1,0 +1,54 @@
+{
+  "batchId": "cozy-witch-cottages-with-potion-gardens",
+  "stage": "listed",
+  "theme": "Cozy witch cottages with potion gardens",
+  "createdAt": "2026-08-19T14:59:07.440Z",
+  "updatedAt": "2026-08-19T15:00:03.708Z",
+  "scout": {
+    "reportJsonPath": "batches/cozy-witch-cottages-with-potion-gardens/research.json",
+    "reportMdPath": "batches/cozy-witch-cottages-with-potion-gardens/research.md",
+    "competitionLevel": "medium",
+    "suggestedAngle": "Position the book as a \"botanical spellcraft\" coloring experience rather than a generic witch or cottage book: each page pairs a cozy cottage exterior/interior scene with a labeled potion-garden element (moonflower patches, mushroom rings, herb-drying racks, bubbling cauldrons fed by garden ingredients). Add small recurring details shoppers love in cottagecore niches — black cats, broomsticks, jars of ingredients, hand-lettered plant names — to create a distinct \"cozy witch herbalist\" sub-theme that differentiates from both plain Halloween witch books and plain cottage/fairy-house books, and supports upsell keywords around gardening, herbalism, and cottagecore fantasy.",
+    "selectionRationale": "This theme offers the best balance of the three key criteria. It rides the well-established, evergreen 'cozy/cottagecore witch' aesthetic that has consistent adult-colorist appeal and gets an added seasonal boost around Halloween/autumn without being purely seasonal (unlike a strictly holiday theme). The subject matter -- cottages, potion bottles, herb/potion gardens, familiars -- provides enough visual variety to fill a full-length book with intricate, non-repetitive designs, which is critical for adult coloring book quality and perceived value. While 'witch' and 'cottage' themes individually have competition on KDP, the specific combined angle of witch cottages PLUS potion gardens is a more differentiated, ownable niche than generic entries in either category, and it outperforms the alternatives: cactus gardens and rosemaling barns have narrower or already-saturated appeal, lighthouse keepers skews too niche/kid-oriented with uncertain keyword demand, and steampunk clockwork animals, while strong, has a smaller passionate-but-narrower fan base compared to the broad cozy-witch aesthetic's cross-over appeal with cottagecore, fantasy, and seasonal shoppers.",
+    "completedAt": "2026-08-19T14:59:07.440Z"
+  },
+  "loom": {
+    "promptsPath": "batches/cozy-witch-cottages-with-potion-gardens/prompts.json",
+    "promptCount": 4,
+    "frontMatterDraft": "Title page: \"Cozy witch cottages with potion gardens: A Coloring Book\"\n\nCopyright page: (c) [YEAR] [PUBLISHER NAME]. All rights reserved. Interior illustrations created with AI-assisted image generation; a human curated and selected every page.\n\nIntroduction (short, 2-3 sentences): Welcome the colorist to this collection of cozy witch cottages with potion gardens illustrations, note the single-sided page layout, and invite them to test markers on the back of a page first.",
+    "backMatterDraft": "Thank you for coloring \"Cozy witch cottages with potion gardens\"! We hope these pages brought a few relaxing hours.\n\nIf you enjoyed this book, a short review helps other colorists find it — we'd be grateful for a few words.\n\nLook for more coloring books in this series.",
+    "completedAt": "2026-08-19T14:59:17.940Z"
+  },
+  "images": {
+    "folder": "batches/cozy-witch-cottages-with-potion-gardens/images",
+    "count": 4,
+    "addedAt": "2026-08-19T14:59:51.299Z",
+    "source": "etch"
+  },
+  "bindery": {
+    "interiorPdfPath": "batches/cozy-witch-cottages-with-potion-gardens/interior.pdf",
+    "trimSize": "8.5x11in",
+    "pageCount": 4,
+    "completedAt": "2026-08-19T15:00:03.705Z"
+  },
+  "crier": {
+    "listingPath": "batches/cozy-witch-cottages-with-potion-gardens/listing.json",
+    "title": "Cozy witch cottages with potion gardens: A Coloring Book",
+    "subtitle": "4 Original Cozy witch cottages with potion gardens Coloring Pages for Relaxation",
+    "keywords": [
+      "Cozy witch cottages with potion gardens coloring",
+      "adult Cozy witch cottages with potion gardens",
+      "easy Cozy witch cottages with potion gardens",
+      "detailed Cozy witch cottages with potion gardens",
+      "relaxation coloring book for adults",
+      "stress relief coloring pages",
+      "line art coloring book"
+    ],
+    "categories": [
+      "Crafts, Hobbies & Home > Crafts & Hobbies > Coloring Books for Grown-Ups",
+      "Humor & Entertainment > Puzzles & Games > Coloring Books for Grown-Ups"
+    ],
+    "aiGeneratedDisclosure": true,
+    "completedAt": "2026-08-19T15:00:03.708Z"
+  }
+}
