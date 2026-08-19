@@ -13,3 +13,32 @@
 .animate-pulse-node {
   animation: pulse-node 2.4s ease-in-out infinite;
 }
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-drawer-slide-in {
+  animation: drawer-slide-in 0.22s ease-out;
+}
+
+@keyframes badge-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.65);
+  }
+  60% {
+    box-shadow: 0 0 0 7px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+.animate-badge-flash {
+  animation: badge-flash 0.9s ease-out;
+}

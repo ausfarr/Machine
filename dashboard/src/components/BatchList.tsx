@@ -1,7 +1,7 @@
 import type { BatchStage, BatchStatus } from "../types";
 import { formatDate } from "../lib/format";
 
-const STAGE_LABELS: Record<BatchStage, string> = {
+export const STAGE_LABELS: Record<BatchStage, string> = {
   researched: "Researched",
   prompted: "Prompted",
   imaged: "Imaged",
@@ -10,7 +10,7 @@ const STAGE_LABELS: Record<BatchStage, string> = {
   published: "Published",
 };
 
-const STAGE_BADGE_CLASSES: Record<BatchStage, string> = {
+export const STAGE_BADGE_CLASSES: Record<BatchStage, string> = {
   researched: "border-slate-600/50 bg-slate-700/40 text-slate-200",
   prompted: "border-sky-500/40 bg-sky-500/10 text-sky-300",
   imaged: "border-indigo-500/40 bg-indigo-500/10 text-indigo-300",
@@ -32,9 +32,13 @@ const PIPELINE_STEPS: {
   { key: "published", label: "Published" },
 ];
 
-function BatchCard({ batch }: { batch: BatchStatus }) {
+function BatchCard({ batch, onSelect }: { batch: BatchStatus; onSelect: () => void }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+    <button
+      type="button"
+      onClick={onSelect}
+      className="w-full rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-left transition hover:border-slate-600 hover:bg-slate-900"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-100">{batch.theme}</h3>
@@ -57,11 +61,11 @@ function BatchCard({ batch }: { batch: BatchStatus }) {
       <p className="mt-3 text-[11px] text-slate-600">
         Created {formatDate(batch.createdAt)} &middot; Updated {formatDate(batch.updatedAt)}
       </p>
-    </div>
+    </button>
   );
 }
 
-export function BatchList({ batches }: { batches: BatchStatus[] }) {
+export function BatchList({ batches, onSelect }: { batches: BatchStatus[]; onSelect: (batchId: string) => void }) {
   return (
     <section>
       <h2 className="text-[11px] font-semibold tracking-[0.2em] text-slate-500">BATCHES</h2>
@@ -75,7 +79,7 @@ export function BatchList({ batches }: { batches: BatchStatus[] }) {
       ) : (
         <div className="mt-4 space-y-3">
           {batches.map((batch) => (
-            <BatchCard key={batch.batchId} batch={batch} />
+            <BatchCard key={batch.batchId} batch={batch} onSelect={() => onSelect(batch.batchId)} />
           ))}
         </div>
       )}

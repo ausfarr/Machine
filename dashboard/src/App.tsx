@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AgentKey, LedgerStatusFile } from "./types";
 import { Header } from "./components/Header";
 import { AgentRoster } from "./components/AgentRoster";
@@ -6,20 +6,55 @@ import { CentralVisualization } from "./components/CentralVisualization";
 import { ActivityFeed } from "./components/ActivityFeed";
 import { BatchList } from "./components/BatchList";
 import { AgentDetailPanel } from "./components/AgentDetailPanel";
+import { BatchDetailDrawer } from "./components/BatchDetailDrawer";
+import { PipelineRunBanner } from "./components/PipelineRunBanner";
+import { TriggerPipelineButton } from "./components/TriggerPipelineButton";
+import { ScheduleStatus } from "./components/ScheduleStatus";
+import { usePipelineRuns } from "./lib/githubActions";
+
+const STATUS_POLL_MS = 20_000;
 
 export default function App() {
   const [status, setStatus] = useState<LedgerStatusFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentKey | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [pulseKey, setPulseKey] = useState(0);
+  const prevGeneratedAt = useRef<string | null>(null);
+
+  const { runs: pipelineRuns, isPipelineRunning, refetch: refetchPipelineRuns } = usePipelineRuns();
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}status.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`status.json responded ${res.status}`);
-        return res.json();
-      })
-      .then((data: LedgerStatusFile) => setStatus(data))
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+    let cancelled = false;
+
+    const poll = () => {
+      fetch(`${import.meta.env.BASE_URL}status.json`)
+        .then((res) => {
+          if (!res.ok) throw new Error(`status.json responded ${res.status}`);
+          return res.json();
+        })
+        .then((data: LedgerStatusFile) => {
+          if (cancelled) return;
+          if (prevGeneratedAt.current !== null && prevGeneratedAt.current !== data.generatedAt) {
+            setPulseKey((k) => k + 1);
+          }
+          prevGeneratedAt.current = data.generatedAt;
+          setStatus(data);
+          setLastSyncedAt(new Date().toISOString());
+          setError(null);
+        })
+        .catch((err) => {
+          if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        });
+    };
+
+    poll();
+    const id = setInterval(poll, STATUS_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
   }, []);
 
   return (
@@ -36,7 +71,7 @@ export default function App() {
 
         {status && (
           <div className="space-y-10">
-            <Header status={status} />
+            <Header status={status} lastSyncedAt={lastSyncedAt} pulseKey={pulseKey} />
 
             {status.summary.invalidBatchCount > 0 && (
               <div className="rounded-lg border border-amber-900 bg-amber-950 p-4 text-sm text-amber-200">
@@ -51,13 +86,20 @@ export default function App() {
               </div>
             )}
 
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <ScheduleStatus />
+              <TriggerPipelineButton isPipelineRunning={isPipelineRunning} onTriggered={refetchPipelineRuns} />
+            </div>
+
+            <PipelineRunBanner runs={pipelineRuns} />
+
             <CentralVisualization agents={status.agents} />
 
             <AgentRoster agents={status.agents} onSelect={setSelectedAgent} />
 
             <div className="grid gap-6 lg:grid-cols-2">
               <ActivityFeed events={status.activity} />
-              <BatchList batches={status.batches} />
+              <BatchList batches={status.batches} onSelect={setSelectedBatchId} />
             </div>
           </div>
         )}
@@ -75,6 +117,14 @@ export default function App() {
                 onClose={() => setSelectedAgent(null)}
               />
             );
+          })()}
+
+        {status &&
+          selectedBatchId &&
+          (() => {
+            const batch = status.batches.find((b) => b.batchId === selectedBatchId);
+            if (!batch) return null;
+            return <BatchDetailDrawer batch={batch} onClose={() => setSelectedBatchId(null)} />;
           })()}
       </div>
     </div>
