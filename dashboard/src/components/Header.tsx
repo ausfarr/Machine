@@ -1,5 +1,6 @@
 import type { LedgerStatusFile } from "../types";
-import { formatDate } from "../lib/format";
+import { formatDate, formatRelative } from "../lib/format";
+import { GithubTokenSettings } from "./GithubTokenSettings";
 
 /**
  * Live when any *content-producing* agent has run within Ledger's active
@@ -11,7 +12,17 @@ function isPipelineLive(status: LedgerStatusFile): boolean {
   return status.agents.some((a) => a.agent !== "ledger" && a.status === "active");
 }
 
-export function Header({ status }: { status: LedgerStatusFile }) {
+export function Header({
+  status,
+  lastSyncedAt,
+  pulseKey,
+}: {
+  status: LedgerStatusFile;
+  /** Real timestamp of this browser's last successful status.json poll. */
+  lastSyncedAt: string | null;
+  /** Bumped only when status.generatedAt actually changes between polls — remounts the badge to replay its flash animation. */
+  pulseKey: number;
+}) {
   const live = isPipelineLive(status);
 
   return (
@@ -35,11 +46,12 @@ export function Header({ status }: { status: LedgerStatusFile }) {
             <p className="text-3xl font-bold text-slate-100">{status.summary.totalBatches}</p>
           </div>
           <span
+            key={pulseKey}
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide ${
               live
                 ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
                 : "border-slate-600/60 bg-slate-800/60 text-slate-400"
-            }`}
+            } ${pulseKey > 0 ? "animate-badge-flash" : ""}`}
             title={
               live
                 ? "At least one agent has run within the pipeline's weekly cadence window."
@@ -54,10 +66,14 @@ export function Header({ status }: { status: LedgerStatusFile }) {
             />
             {live ? "LIVE" : "IDLE"}
           </span>
+          <GithubTokenSettings />
         </div>
       </div>
 
-      <p className="mt-4 text-right text-xs text-slate-600">Status generated {formatDate(status.generatedAt)}</p>
+      <div className="mt-4 flex items-center justify-end gap-3 text-xs text-slate-600">
+        {lastSyncedAt && <span>Synced {formatRelative(lastSyncedAt)}</span>}
+        <span>Status generated {formatDate(status.generatedAt)}</span>
+      </div>
     </header>
   );
 }
