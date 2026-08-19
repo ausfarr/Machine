@@ -1,0 +1,54 @@
+{
+  "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+  "stage": "listed",
+  "theme": "Vintage botanical greenhouse plants with brass fixtures",
+  "createdAt": "2026-08-19T15:08:32.572Z",
+  "updatedAt": "2026-08-19T15:13:14.569Z",
+  "scout": {
+    "reportJsonPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/research.json",
+    "reportMdPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/research.md",
+    "competitionLevel": "medium",
+    "suggestedAngle": "Frame the book as a \"Victorian Glasshouse Botanical Journal\" — each page depicts a potted specimen inside an ornate greenhouse vignette, incorporating brass fixtures (spigots, hinges, plant stands, hanging planters, thermometers, watering cans) alongside the botanicals. This gives colorists a richer scene-based composition (not just isolated plant line art), appealing to fans of steampunk/vintage aesthetics, botanical illustration, and antique conservatory decor — a distinct visual niche versus typical single-flower or generic botanical coloring pages.",
+    "selectionRationale": "This theme offers the best balance of evergreen, non-seasonal demand (botanical/nature coloring books sell consistently year-round vs. holiday-locked themes like Nordic winter scenes), strong differentiation from the oversaturated generic 'flower/botanical' coloring book market by layering in a distinctive vintage greenhouse/brass-fixture aesthetic, and broad crossover appeal to adult colorists who favor intricate nature illustration and vintage/cottagecore decor styles. It supports a large volume of unique page concepts (various plants, potting tools, greenhouse architecture details) without running into the higher saturation seen in steampunk-animal or art-deco-cityscape niches, while carrying lower seasonal risk and strong long-tail keyword opportunities on KDP.</selectionRationale>\n</invoke>\n",
+    "completedAt": "2026-08-19T15:08:32.572Z"
+  },
+  "loom": {
+    "promptsPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/prompts.json",
+    "promptCount": 24,
+    "frontMatterDraft": "Title page: \"Vintage botanical greenhouse plants with brass fixtures: A Coloring Book\"\n\nCopyright page: (c) [YEAR] [PUBLISHER NAME]. All rights reserved. Interior illustrations created with AI-assisted image generation; a human curated and selected every page.\n\nIntroduction (short, 2-3 sentences): Welcome the colorist to this collection of vintage botanical greenhouse plants with brass fixtures illustrations, note the single-sided page layout, and invite them to test markers on the back of a page first.",
+    "backMatterDraft": "Thank you for coloring \"Vintage botanical greenhouse plants with brass fixtures\"! We hope these pages brought a few relaxing hours.\n\nIf you enjoyed this book, a short review helps other colorists find it — we'd be grateful for a few words.\n\nLook for more coloring books in this series.",
+    "completedAt": "2026-08-19T15:08:42.331Z"
+  },
+  "images": {
+    "folder": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/images",
+    "count": 24,
+    "addedAt": "2026-08-19T15:12:15.434Z",
+    "source": "etch"
+  },
+  "bindery": {
+    "interiorPdfPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/interior.pdf",
+    "trimSize": "8.5x11in",
+    "pageCount": 24,
+    "completedAt": "2026-08-19T15:13:14.567Z"
+  },
+  "crier": {
+    "listingPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/listing.json",
+    "title": "Vintage botanical greenhouse plants with brass fixtures: A Coloring Book",
+    "subtitle": "24 Original Vintage botanical greenhouse plants with brass fixtures Coloring Pages for Relaxation",
+    "keywords": [
+      "Vintage botanical greenhouse plants with brass",
+      "adult Vintage botanical greenhouse plants with",
+      "easy Vintage botanical greenhouse plants with",
+      "detailed Vintage botanical greenhouse plants with",
+      "relaxation coloring book for adults",
+      "stress relief coloring pages",
+      "line art coloring book"
+    ],
+    "categories": [
+      "Crafts, Hobbies & Home > Crafts & Hobbies > Coloring Books for Grown-Ups",
+      "Humor & Entertainment > Puzzles & Games > Coloring Books for Grown-Ups"
+    ],
+    "aiGeneratedDisclosure": true,
+    "completedAt": "2026-08-19T15:13:14.569Z"
+  }
+}
