@@ -17,7 +17,7 @@ export interface BatchStatus {
   updatedAt: string;
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
-  images: StageStatus<{ addedAt: string; count: number }>;
+  images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
   crier: StageStatus<{ completedAt: string; aiGeneratedDisclosure: true }>;
   published: StageStatus<{ publishedAt: string }>;
@@ -28,13 +28,39 @@ export interface InvalidBatch {
   error: string;
 }
 
+/** Real agent modules from CLAUDE.md's Agents section, in build order. */
+export const AGENT_KEYS = ["scout", "loom", "etch", "bindery", "crier", "ledger", "sentinel", "analyst"] as const;
+export type AgentKey = (typeof AGENT_KEYS)[number];
+
+export type AgentRunStatus = "active" | "idle" | "not_yet_run";
+
+export interface AgentActivity {
+  agent: AgentKey;
+  status: AgentRunStatus;
+  lastRanAt: string | null;
+  metric: { label: string; value: number };
+}
+
+export type ActivityActor = AgentKey | "human";
+
+export interface ActivityEvent {
+  at: string;
+  batchId: string;
+  theme: string;
+  actor: ActivityActor;
+  summary: string;
+}
+
 export interface LedgerStatusFile {
   generatedAt: string;
   summary: {
     totalBatches: number;
     invalidBatchCount: number;
     byStage: Record<BatchStage, number>;
+    batchesInProgress: number;
   };
   batches: BatchStatus[];
   invalidBatches: InvalidBatch[];
+  agents: AgentActivity[];
+  activity: ActivityEvent[];
 }

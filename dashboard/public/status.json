@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-18T18:30:24.129Z",
+  "generatedAt": "2026-08-18T21:08:09.182Z",
   "summary": {
     "totalBatches": 0,
     "invalidBatchCount": 0,
@@ -10,8 +10,84 @@
       "assembled": 0,
       "listed": 0,
       "published": 0
-    }
+    },
+    "batchesInProgress": 0
   },
   "batches": [],
-  "invalidBatches": []
+  "invalidBatches": [],
+  "agents": [
+    {
+      "agent": "scout",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Themes researched",
+        "value": 0
+      }
+    },
+    {
+      "agent": "loom",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Prompts generated",
+        "value": 0
+      }
+    },
+    {
+      "agent": "etch",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Images generated",
+        "value": 0
+      }
+    },
+    {
+      "agent": "bindery",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Interiors assembled",
+        "value": 0
+      }
+    },
+    {
+      "agent": "crier",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Listings written",
+        "value": 0
+      }
+    },
+    {
+      "agent": "ledger",
+      "status": "active",
+      "lastRanAt": "2026-08-18T21:08:09.182Z",
+      "metric": {
+        "label": "Batches tracked",
+        "value": 0
+      }
+    },
+    {
+      "agent": "sentinel",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Fix PRs drafted",
+        "value": 0
+      }
+    },
+    {
+      "agent": "analyst",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Royalties reported",
+        "value": 0
+      }
+    }
+  ],
+  "activity": []
 }
