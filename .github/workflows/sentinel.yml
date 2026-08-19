@@ -39,6 +39,10 @@ jobs:
           exit_code=0
           { npm run typecheck || exit_code=1; } 2>&1 | tee -a sentinel-failure.log
           { npm test || exit_code=1; } 2>&1 | tee -a sentinel-failure.log
+          # CI's separate "dashboard" job (ci.yml) builds dashboard/ on its own —
+          # reproduce that here too, or a dashboard-only failure never trips
+          # steps.repro.outcome and Sentinel silently never runs on it.
+          { (cd dashboard && npm ci && npm run build) || exit_code=1; } 2>&1 | tee -a sentinel-failure.log
           exit $exit_code
 
       - name: Run Sentinel
@@ -61,6 +65,7 @@ jobs:
 
       - name: Open PR with proposed fix
         if: steps.sentinel.outputs.patch_applied == 'true'
+        id: open-pr
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "Sentinel: ${{ steps.sentinel.outputs.summary }}"
@@ -68,3 +73,59 @@ jobs:
           title: "Sentinel: ${{ steps.sentinel.outputs.summary }}"
           labels: automated-fix
           body-path: sentinel-report.md
+
+      # Records this run to agents/sentinel/run-log.json on main via the
+      # Contents API (not a local git commit) — this step's checkout is
+      # pinned to the failing head_sha, which may not be main's tip and may
+      # be left dirty by a patch-apply attempt above, so touching it with
+      # git here would risk clobbering unrelated history. The API's sha
+      # check makes this a safe, atomic append regardless. Ledger reads
+      # this file for Sentinel's real dashboard status/metric — never a
+      # placeholder.
+      - name: Record Sentinel run
+        if: steps.repro.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          OUTCOME="error"
+          SUMMARY="${{ steps.sentinel.outputs.summary }}"
+          if [ "${{ steps.sentinel.outputs.patch_applied }}" = "true" ]; then
+            OUTCOME="patch_applied"
+          elif [ -n "$SUMMARY" ]; then
+            OUTCOME="no_confident_fix"
+          else
+            SUMMARY="Sentinel did not complete — see this workflow run's logs."
+          fi
+
+          CURRENT=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/contents/agents/sentinel/run-log.json?ref=main")
+
+          if echo "$CURRENT" | jq -e 'has("sha")' >/dev/null 2>&1; then
+            SHA=$(echo "$CURRENT" | jq -r '.sha')
+            LOG=$(echo "$CURRENT" | jq -r '.content' | base64 -d)
+          else
+            SHA=""
+            LOG="[]"
+          fi
+
+          NEW_LOG=$(echo "$LOG" | jq \
+            --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg headSha "${{ github.event.workflow_run.head_sha }}" \
+            --arg outcome "$OUTCOME" \
+            --arg summary "$SUMMARY" \
+            --arg prUrl "${{ steps.open-pr.outputs.pull-request-url }}" \
+            '. + [{at: $at, headSha: $headSha, outcome: $outcome, summary: $summary} + (if $prUrl != "" then {prUrl: $prUrl} else {} end)] | .[-200:]')
+
+          ENCODED=$(echo "$NEW_LOG" | base64 -w0)
+
+          if [ -n "$SHA" ]; then
+            BODY=$(jq -n --arg msg "Sentinel: record run ($OUTCOME)" --arg content "$ENCODED" --arg sha "$SHA" '{message:$msg, content:$content, sha:$sha, branch:"main"}')
+          else
+            BODY=$(jq -n --arg msg "Sentinel: record run ($OUTCOME)" --arg content "$ENCODED" '{message:$msg, content:$content, branch:"main"}')
+          fi
+
+          curl -sS -X PUT -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/contents/agents/sentinel/run-log.json" \
+            -d "$BODY" -o /dev/null -w "run-log update: HTTP %{http_code}\n" --fail-with-body

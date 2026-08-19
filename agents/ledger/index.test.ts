@@ -127,7 +127,8 @@ describe("runLedger", () => {
     expect(bindery?.status).toBe("not_yet_run");
     expect(bindery?.metric.value).toBe(0);
 
-    // Sentinel and Analyst have no producer yet at all (CLAUDE.md "Build order").
+    // No run-log.json in this temp dir, so Sentinel honestly reports it never ran.
+    // Analyst has no producer at all yet (CLAUDE.md "Build order").
     const sentinel = status.agents.find((a) => a.agent === "sentinel");
     expect(sentinel).toEqual({
       agent: "sentinel",
@@ -166,6 +167,47 @@ describe("runLedger", () => {
     expect(status.activity[0]?.summary).toMatch(/Loom wrote 20 image prompts/);
     expect(status.activity[1]?.actor).toBe("scout");
     expect(new Date(status.activity[0]!.at).getTime()).toBeGreaterThanOrEqual(new Date(status.activity[1]!.at).getTime());
+  });
+
+  it("reports Sentinel's real activity from its run-log instead of a hardcoded stub", () => {
+    tempDir = mkdtempSync(join(tmpdir(), "ledger-test-"));
+    const batchesDir = join(tempDir, "batches");
+    const sentinelRunLogPath = join(tempDir, "sentinel-run-log.json");
+
+    writeFileSync(
+      sentinelRunLogPath,
+      JSON.stringify([
+        { at: "2026-08-10T12:00:00Z", headSha: "aaa", outcome: "no_confident_fix", summary: "Flaky network mock in a test" },
+        {
+          at: "2026-08-19T12:00:00Z",
+          headSha: "bbb",
+          outcome: "patch_applied",
+          summary: "Fixed a missing import",
+          prUrl: "https://github.com/ausfarr/Machine/pull/99",
+        },
+      ])
+    );
+
+    const status = runLedger({ batchesDir, outputPath: join(tempDir, "status.json"), sentinelRunLogPath });
+
+    const sentinel = status.agents.find((a) => a.agent === "sentinel");
+    expect(sentinel?.lastRanAt).toBe("2026-08-19T12:00:00Z");
+    expect(sentinel?.metric).toEqual({ label: "Fix PRs drafted", value: 1 });
+  });
+
+  it("treats a missing Sentinel run-log as an honest 'never run', not an error", () => {
+    tempDir = mkdtempSync(join(tmpdir(), "ledger-test-"));
+    const batchesDir = join(tempDir, "batches");
+
+    const status = runLedger({
+      batchesDir,
+      outputPath: join(tempDir, "status.json"),
+      sentinelRunLogPath: join(tempDir, "does-not-exist.json"),
+    });
+
+    const sentinel = status.agents.find((a) => a.agent === "sentinel");
+    expect(sentinel?.status).toBe("not_yet_run");
+    expect(sentinel?.lastRanAt).toBeNull();
   });
 
   it("computes batchesInProgress as batches not yet published", async () => {
