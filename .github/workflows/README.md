@@ -45,3 +45,14 @@ touches KDP or publishes book content anywhere.
 
 Runs the root test suite (`npm run typecheck && npm test`) and the
 dashboard's build, so a broken change can't merge silently.
+
+## `sentinel.yml` — when CI fails on a push to main
+
+Triggers when `ci.yml` completes with `conclusion: failure` on a push to
+main (not on PRs — Sentinel reacts to the mainline breaking, not to
+work-in-progress branches). Re-runs typecheck/test to capture the actual
+failure output, then runs Sentinel, which diagnoses it via the Anthropic
+API and — only when confident — proposes a minimal patch. The diagnosis
+and (if produced) patch are always uploaded as a workflow artifact; a PR
+only gets opened when Sentinel actually applied a patch, per CLAUDE.md's
+Sentinel section. Never merges anything itself.
