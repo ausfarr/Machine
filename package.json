@@ -16,7 +16,8 @@
     "ledger": "tsx agents/ledger/cli.ts",
     "sentinel": "tsx agents/sentinel/cli.ts",
     "process-queue": "tsx scripts/run-pipeline-from-queue.ts",
-    "generate:portraits": "tsx scripts/generate-agent-portraits.ts"
+    "generate:portraits": "tsx scripts/generate-agent-portraits.ts",
+    "generate:cover": "tsx scripts/generate-cover-for-batch.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
