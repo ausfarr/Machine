@@ -118,6 +118,10 @@ describe("runLedger", () => {
     expect(etch?.status).toBe("active");
     expect(etch?.metric).toEqual({ label: "Images generated", value: 20 });
 
+    const batch = status.batches.find((b) => b.batchId === scouted.batchId);
+    expect(batch?.coverArt.done).toBe(true);
+    expect(batch?.coverArt.detail?.source).toBe("etch");
+
     // Bindery/Crier haven't run on this batch yet — real zero, not a guess.
     const bindery = status.agents.find((a) => a.agent === "bindery");
     expect(bindery?.status).toBe("not_yet_run");

@@ -2,8 +2,11 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
 import { assembleInteriorPdf } from "./assemble.ts";
+import { assembleCoverPdf } from "./assembleCover.ts";
 import { TRIM_SIZE_LABEL } from "./kdpSpecs.ts";
 import { validateImages } from "./validateImages.ts";
+
+const COVER_ART_FILENAME = "cover-art.png";
 
 export interface BinderyRunOptions {
   batchesDir?: string;
@@ -13,6 +16,7 @@ export interface BinderyRunResult {
   batchDir: string;
   manifest: BatchManifest;
   interiorPdfPath: string;
+  coverPdfPath: string;
   pageCount: number;
 }
 
@@ -40,8 +44,22 @@ export async function runBindery(batchId: string, options: BinderyRunOptions = {
   const imagesDir = join(batchDir, "images");
   const { images, latestModifiedAt } = await validateImages(imagesDir, expectedCount);
 
+  const coverArtPath = existingManifest.coverArt?.path ?? join(batchDir, COVER_ART_FILENAME);
+  if (!existsSync(coverArtPath)) {
+    throw new Error(
+      `Bindery: no cover art found at ${coverArtPath}. Run Etch to generate one, or drop a "${COVER_ART_FILENAME}" file into ${batchDir} by hand before running Bindery.`
+    );
+  }
+  const backCoverBlurb = existingManifest.loom?.backCoverBlurbDraft;
+  if (!backCoverBlurb) {
+    throw new Error(`Batch "${batchId}" manifest is missing loom.backCoverBlurbDraft — cannot assemble a cover.`);
+  }
+
   const interiorPdfPath = join(batchDir, "interior.pdf");
   const pageCount = await assembleInteriorPdf(images, interiorPdfPath);
+
+  const coverPdfPath = join(batchDir, "cover.pdf");
+  await assembleCoverPdf(coverArtPath, backCoverBlurb, existingManifest.theme, pageCount, coverPdfPath);
 
   const completedAt = new Date().toISOString();
   const manifestCandidate: BatchManifest = {
@@ -55,10 +73,17 @@ export async function runBindery(batchId: string, options: BinderyRunOptions = {
       // Preserve Etch's provenance if it already ran; otherwise these images were supplied/edited by a human.
       source: existingManifest.images?.source ?? "human",
     },
+    coverArt: {
+      path: coverArtPath,
+      addedAt: existingManifest.coverArt?.addedAt ?? completedAt,
+      // Preserve Etch's provenance if it already ran; otherwise this cover art was supplied/edited by a human.
+      source: existingManifest.coverArt?.source ?? "human",
+    },
     bindery: {
       interiorPdfPath,
       trimSize: TRIM_SIZE_LABEL,
       pageCount,
+      coverPdfPath,
       completedAt,
     },
   };
@@ -66,5 +91,5 @@ export async function runBindery(batchId: string, options: BinderyRunOptions = {
   const manifest = validateManifest(manifestCandidate);
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
-  return { batchDir, manifest, interiorPdfPath, pageCount };
+  return { batchDir, manifest, interiorPdfPath, coverPdfPath, pageCount };
 }

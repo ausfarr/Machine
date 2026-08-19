@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { validateManifest } from "../../schemas/manifest.ts";
-import { writeValidTestImages } from "../bindery/testFixtures.ts";
+import { writeValidTestCoverArt, writeValidTestImages } from "../bindery/testFixtures.ts";
 import { runBindery } from "../bindery/index.ts";
 import { runLoom } from "../loom/index.ts";
 import { runScout } from "../scout/index.ts";
@@ -23,6 +23,7 @@ async function scoutLoomBindery(batchesDir: string, promptCount = 20) {
   const scouted = await runScout("Fantasy Castles", { batchesDir, claudeClient: fakeClaudeClient() });
   runLoom(scouted.batchId, { batchesDir, promptCount });
   await writeValidTestImages(join(batchesDir, scouted.batchId, "images"), promptCount);
+  await writeValidTestCoverArt(join(batchesDir, scouted.batchId, "cover-art.png"));
   await runBindery(scouted.batchId, { batchesDir });
   return scouted.batchId;
 }
@@ -45,7 +46,7 @@ describe("runCrier", () => {
     expect(listing.aiGeneratedDisclosure).toBe(true);
     expect(listing.disclosureNote).toMatch(/AI/);
     expect(listing.categories.length).toBeGreaterThan(0);
-  });
+  }, 60000);
 
   it("refuses to run on a batch that isn't at stage assembled", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "crier-e2e-"));

@@ -28,3 +28,17 @@ export async function writeUndersizedTestImage(path: string): Promise<void> {
     .png()
     .toFile(path);
 }
+
+/** Test-only helper: writes a blank cover-art.png sized to pass Bindery's cover assembly. */
+export async function writeValidTestCoverArt(path: string): Promise<void> {
+  await sharp({
+    create: {
+      width: MIN_IMAGE_WIDTH_PX,
+      height: MIN_IMAGE_HEIGHT_PX,
+      channels: 3,
+      background: { r: 220, g: 200, b: 240 },
+    },
+  })
+    .png()
+    .toFile(path);
+}

@@ -55,6 +55,8 @@ describe("runEtch", () => {
     expect(result.manifest.stage).toBe("imaged");
     expect(result.manifest.images?.source).toBe("etch");
     expect(result.manifest.images?.count).toBe(20);
+    expect(result.manifest.coverArt?.source).toBe("etch");
+    expect(result.manifest.coverArt?.path).toBe(join(result.batchDir, "cover-art.png"));
 
     const files = ["01.png", "10.png", "20.png"];
     for (const f of files) {
@@ -62,6 +64,10 @@ describe("runEtch", () => {
       expect(meta.width).toBeGreaterThanOrEqual(2550);
       expect(meta.height).toBeGreaterThanOrEqual(3300);
     }
+
+    const coverMeta = await sharp(join(result.batchDir, "cover-art.png")).metadata();
+    expect(coverMeta.width).toBeGreaterThanOrEqual(2550);
+    expect(coverMeta.height).toBeGreaterThanOrEqual(3300);
   });
 
   it("throws if the batch isn't at stage prompted", async () => {

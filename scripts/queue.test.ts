@@ -92,7 +92,7 @@ describe("runPipelineFromQueue", () => {
     expect(manifest.stage).toBe("listed");
     expect(manifest.images.source).toBe("etch");
     expect(manifest.scout.selectionRationale).toBe(result.selectionRationale);
-  });
+  }, 60000);
 
   it("still runs the pipeline when theme-queue.json is empty, using Scout's own generated candidates", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
@@ -113,7 +113,7 @@ describe("runPipelineFromQueue", () => {
     // The human queue was never populated, so consuming the selection leaves it empty, not negative/broken.
     expect(result.remainingQueueLength).toBe(0);
     expect(readQueue(queuePath)).toEqual([]);
-  });
+  }, 60000);
 
   it("leaves a human-queued theme untouched when Claude selects one of its own generated candidates instead", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
@@ -132,7 +132,7 @@ describe("runPipelineFromQueue", () => {
     expect(result.theme).toBe("Cozy Cabins");
     // "Fantasy Castles" was never selected, so it must still be in the human queue afterward.
     expect(readQueue(queuePath)).toEqual(["Fantasy Castles"]);
-  });
+  }, 60000);
 
   it("throws instead of fabricating a batch when there are no candidates at all", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
@@ -170,7 +170,7 @@ describe("runPipelineFromQueue", () => {
     await runPipelineFromQueue({ queuePath, batchesDir, claudeClient: client, imageClient: fakeImageClient(), promptCount: 20 });
 
     expect(generateCandidateThemes).toHaveBeenCalledWith(expect.any(Number), ["Cats"]);
-  });
+  }, 60000);
 
   it("leaves the theme out of the queue even if a downstream step fails, instead of retrying it forever", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));

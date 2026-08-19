@@ -19,10 +19,14 @@ const STAGE_BADGE_CLASSES: Record<BatchStage, string> = {
   published: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
 };
 
-const PIPELINE_STEPS: { key: keyof Pick<BatchStatus, "scout" | "loom" | "images" | "bindery" | "crier" | "published">; label: string }[] = [
+const PIPELINE_STEPS: {
+  key: keyof Pick<BatchStatus, "scout" | "loom" | "images" | "coverArt" | "bindery" | "crier" | "published">;
+  label: string;
+}[] = [
   { key: "scout", label: "Scout" },
   { key: "loom", label: "Loom" },
   { key: "images", label: "Images" },
+  { key: "coverArt", label: "Cover" },
   { key: "bindery", label: "Bindery" },
   { key: "crier", label: "Crier" },
   { key: "published", label: "Published" },
