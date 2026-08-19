@@ -7,7 +7,6 @@ import {
   STYLE_GUIDANCE,
   buildCoverPrompt,
   buildPrompt,
-  generateBackCoverBlurbDraft,
   generateBackMatterDraft,
   generateFrontMatterDraft,
 } from "./templates.ts";
@@ -83,7 +82,6 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
 
   const frontMatterDraft = generateFrontMatterDraft(theme);
   const backMatterDraft = generateBackMatterDraft(theme);
-  const backCoverBlurbDraft = generateBackCoverBlurbDraft(theme);
 
   const promptsPath = join(batchDir, "prompts.json");
   writeFileSync(promptsPath, JSON.stringify(promptsFile, null, 2));
@@ -103,7 +101,6 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
       promptCount,
       frontMatterDraft,
       backMatterDraft,
-      backCoverBlurbDraft,
       completedAt: generatedAt,
     },
   };

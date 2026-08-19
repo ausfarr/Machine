@@ -39,9 +39,9 @@ jobs:
           title: "New batch: ${{ steps.process.outputs.theme }}"
           labels: automated-batch
           body: |
-            Scout proposed and selected this theme itself via the Anthropic API (blended with anything queued by hand in `theme-queue.json`) and researched it, Loom generated prompts, Etch generated the interior images and a front-cover art image via the Gemini API, and Bindery + Crier assembled the interior PDF, the full-wrap cover PDF, and listing copy — the whole pipeline ran unattended, per CLAUDE.md's Authorized external APIs section.
+            Scout proposed and selected this theme itself via the Anthropic API (blended with anything queued by hand in `theme-queue.json`) and researched it, Loom generated prompts (including a cover prompt with the title baked in), Etch generated the interior images and the front-cover art via the Gemini API, and Bindery + Crier assembled the interior PDF and listing copy — the whole pipeline ran unattended, per CLAUDE.md's Authorized external APIs section.
 
-            This PR does not publish anything. A human should read `batches/${{ steps.process.outputs.batch_id }}/research.md`, proof `interior.pdf`, `cover.pdf`, and `listing.json`, then either:
+            This PR does not publish anything. A human should read `batches/${{ steps.process.outputs.batch_id }}/research.md`, proof `interior.pdf`, `cover-art.png`, and `listing.json`, then either:
             - merge this PR and publish externally (disclosing the AI-generated content per KDP's requirements), or
             - close this PR to discard the batch, or
             - replace files in the batch's `images/` folder and push — that retriggers `bindery-crier.yml` to reassemble with the new images.

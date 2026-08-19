@@ -9,9 +9,8 @@ if (!batchId) {
 
 try {
   const result = await runCoverBackfill(batchId);
-  console.log(`Cover generated for batch "${batchId}":`);
+  console.log(`Cover art generated for batch "${batchId}":`);
   console.log(`  ${result.coverArtPath}`);
-  console.log(`  ${result.coverPdfPath}`);
 } catch (err) {
   console.error("Cover generation failed:", err instanceof Error ? err.message : err);
   process.exit(1);

@@ -29,7 +29,7 @@ export async function writeUndersizedTestImage(path: string): Promise<void> {
     .toFile(path);
 }
 
-/** Test-only helper: writes a blank cover-art.png sized to pass Bindery's cover assembly. */
+/** Test-only helper: writes a blank cover-art.png at valid dimensions. */
 export async function writeValidTestCoverArt(path: string): Promise<void> {
   await sharp({
     create: {

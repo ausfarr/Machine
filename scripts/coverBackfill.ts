@@ -1,10 +1,9 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { assembleCoverPdf } from "../agents/bindery/assembleCover.ts";
 import { COVER_ART_FILENAME } from "../agents/etch/index.ts";
 import { generateCoverArt } from "../agents/etch/generateCoverArt.ts";
 import { GeminiImageClient, type ImageGenClient } from "../agents/etch/geminiClient.ts";
-import { buildCoverPrompt, generateBackCoverBlurbDraft } from "../agents/loom/templates.ts";
+import { buildCoverPrompt } from "../agents/loom/templates.ts";
 import { validateManifest, type BatchManifest } from "../schemas/manifest.ts";
 
 export interface CoverBackfillOptions {
@@ -17,7 +16,6 @@ export interface CoverBackfillResult {
   batchDir: string;
   manifest: BatchManifest;
   coverArtPath: string;
-  coverPdfPath: string;
 }
 
 /** Reads the cover art prompt out of a batch's prompts.json, if it has one. */
@@ -35,13 +33,12 @@ function readStoredCoverPrompt(manifest: BatchManifest): string | undefined {
 }
 
 /**
- * Generates (or reuses) cover art and assembles cover.pdf for a batch whose
- * interior is already assembled — without re-running Scout, Loom, Etch, or
- * Bindery's interior assembly. Covers two real cases: a batch that predates
- * cover generation entirely (falls back to Loom's own deterministic
- * prompt/blurb builders, which only need the theme — not a fresh Loom run),
- * and a batch that already has cover data but is missing cover-art.png or
- * cover.pdf on disk (e.g. a human wants to redo the layout with new art).
+ * Generates cover art for a batch that doesn't have any yet, at any stage —
+ * without re-running Scout, Loom, Etch, or Bindery. Works even for a batch
+ * that predates cover generation entirely, since it falls back to Loom's
+ * own deterministic buildCoverPrompt (which bakes in the same title Crier
+ * writes to listing.json), needing only the batch's theme rather than a
+ * fresh Loom run. If cover-art.png already exists, it's left alone.
  */
 export async function runCoverBackfill(batchId: string, options: CoverBackfillOptions = {}): Promise<CoverBackfillResult> {
   const batchesDir = options.batchesDir ?? "batches";
@@ -53,15 +50,9 @@ export async function runCoverBackfill(batchId: string, options: CoverBackfillOp
   }
 
   const manifest = validateManifest(JSON.parse(readFileSync(manifestPath, "utf-8")));
-  if (!manifest.bindery) {
-    throw new Error(
-      `Batch "${batchId}" hasn't been assembled yet (no bindery.interiorPdfPath) — run the normal Etch/Bindery pipeline instead, which already generates the cover as part of assembly.`
-    );
-  }
-
   const coverArtPath = manifest.coverArt?.path ?? join(batchDir, COVER_ART_FILENAME);
-  let source: "etch" | "human" = manifest.coverArt?.source ?? "human";
 
+  let source: "etch" | "human" = manifest.coverArt?.source ?? "human";
   if (!existsSync(coverArtPath)) {
     const coverPrompt = readStoredCoverPrompt(manifest) ?? buildCoverPrompt(manifest.theme);
     const imageClient = options.imageClient ?? new GeminiImageClient();
@@ -69,21 +60,15 @@ export async function runCoverBackfill(batchId: string, options: CoverBackfillOp
     source = "etch";
   }
 
-  const backCoverBlurb = manifest.loom?.backCoverBlurbDraft ?? generateBackCoverBlurbDraft(manifest.theme);
-
-  const coverPdfPath = join(batchDir, "cover.pdf");
-  await assembleCoverPdf(coverArtPath, backCoverBlurb, manifest.theme, manifest.bindery.pageCount, coverPdfPath);
-
   const completedAt = new Date().toISOString();
   const updatedCandidate: BatchManifest = {
     ...manifest,
     updatedAt: completedAt,
     coverArt: { path: coverArtPath, addedAt: manifest.coverArt?.addedAt ?? completedAt, source },
-    bindery: { ...manifest.bindery, coverPdfPath, completedAt },
   };
 
   const updated = validateManifest(updatedCandidate);
   writeFileSync(manifestPath, JSON.stringify(updated, null, 2));
 
-  return { batchDir, manifest: updated, coverArtPath, coverPdfPath };
+  return { batchDir, manifest: updated, coverArtPath };
 }
