@@ -33,7 +33,7 @@ export type ScoutResult = z.infer<typeof ScoutResultSchema>;
 /** Loom's output: a batch of external-tool image prompts + draft copy. */
 export const LoomResultSchema = z.object({
   promptsPath: z.string(),
-  promptCount: z.number().int().min(20).max(30),
+  promptCount: z.number().int().min(1).max(30),
   frontMatterDraft: z.string(),
   backMatterDraft: z.string(),
   completedAt: isoTimestamp,

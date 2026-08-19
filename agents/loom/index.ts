@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { PROMPT_COUNT } from "../../config.ts";
 import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
 import {
   COMPOSITION_TEMPLATES,
@@ -8,8 +9,6 @@ import {
   generateBackMatterDraft,
   generateFrontMatterDraft,
 } from "./templates.ts";
-
-const DEFAULT_PROMPT_COUNT = 24;
 
 export interface LoomRunOptions {
   batchesDir?: string;
@@ -38,10 +37,10 @@ interface PromptsFile {
 
 export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunResult {
   const batchesDir = options.batchesDir ?? "batches";
-  const promptCount = options.promptCount ?? DEFAULT_PROMPT_COUNT;
+  const promptCount = options.promptCount ?? PROMPT_COUNT;
 
-  if (promptCount < 20 || promptCount > 30) {
-    throw new Error("Loom prompt count must be between 20 and 30 (KDP low-content batch convention).");
+  if (promptCount < 1 || promptCount > 30) {
+    throw new Error("Loom prompt count must be between 1 and 30 (30 is the composition template ceiling).");
   }
   if (promptCount > COMPOSITION_TEMPLATES.length) {
     throw new Error(
