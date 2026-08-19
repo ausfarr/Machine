@@ -3,7 +3,7 @@
   "stage": "listed",
   "theme": "Whimsical mushroom houses with tiny woodland doors",
   "createdAt": "2026-08-19T14:04:03.333Z",
-  "updatedAt": "2026-08-19T14:05:02.624Z",
+  "updatedAt": "2026-08-19T16:50:40.709Z",
   "scout": {
     "reportJsonPath": "batches/whimsical-mushroom-houses-with-tiny-woodland-doors/research.json",
     "reportMdPath": "batches/whimsical-mushroom-houses-with-tiny-woodland-doors/research.md",
@@ -25,11 +25,17 @@
     "addedAt": "2026-08-19T14:04:52.746Z",
     "source": "etch"
   },
+  "coverArt": {
+    "path": "batches/whimsical-mushroom-houses-with-tiny-woodland-doors/cover-art.png",
+    "addedAt": "2026-08-19T16:50:40.709Z",
+    "source": "etch"
+  },
   "bindery": {
     "interiorPdfPath": "batches/whimsical-mushroom-houses-with-tiny-woodland-doors/interior.pdf",
     "trimSize": "8.5x11in",
     "pageCount": 4,
-    "completedAt": "2026-08-19T14:05:02.622Z"
+    "coverPdfPath": "batches/whimsical-mushroom-houses-with-tiny-woodland-doors/cover.pdf",
+    "completedAt": "2026-08-19T16:50:40.709Z"
   },
   "crier": {
     "listingPath": "batches/whimsical-mushroom-houses-with-tiny-woodland-doors/listing.json",
