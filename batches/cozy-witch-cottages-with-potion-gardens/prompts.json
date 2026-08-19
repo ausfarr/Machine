@@ -1,0 +1,24 @@
+{
+  "batchId": "cozy-witch-cottages-with-potion-gardens",
+  "theme": "Cozy witch cottages with potion gardens",
+  "generatedAt": "2026-08-19T14:59:17.940Z",
+  "styleGuidance": "Black-and-white line art only: bold, clean outlines, no shading, no gradients, no color, no gray fill, white background. Designed for an 8.5x11in KDP coloring book interior page, single subject per page unless the prompt says otherwise.",
+  "prompts": [
+    {
+      "index": 1,
+      "prompt": "A close-up view of Cozy witch cottages with potion gardens, bold clean linework, no shading, no color, white background, coloring book page."
+    },
+    {
+      "index": 2,
+      "prompt": "A wide establishing shot of Cozy witch cottages with potion gardens with layered background detail, bold outlines, no color, coloring book page."
+    },
+    {
+      "index": 3,
+      "prompt": "Cozy witch cottages with potion gardens viewed from a low angle looking upward, dramatic perspective, bold linework, no color, coloring book page."
+    },
+    {
+      "index": 4,
+      "prompt": "A symmetrical, centered composition of Cozy witch cottages with potion gardens with a decorative border, bold outlines, no color, coloring book page."
+    }
+  ]
+}
