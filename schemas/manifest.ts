@@ -36,14 +36,6 @@ export const LoomResultSchema = z.object({
   promptCount: z.number().int().min(1).max(30),
   frontMatterDraft: z.string(),
   backMatterDraft: z.string(),
-  /**
-   * Draft blurb for the printed back cover — distinct from Crier's longer
-   * KDP listing description. Optional (like CoverArtResultSchema below) so
-   * manifests from before cover generation existed stay valid; Bindery's
-   * cover-assembly path and the standalone cover-backfill script both fall
-   * back to generating one from the theme when it's absent.
-   */
-  backCoverBlurbDraft: z.string().optional(),
   completedAt: isoTimestamp,
 });
 export type LoomResult = z.infer<typeof LoomResultSchema>;
@@ -71,13 +63,11 @@ export const CoverArtResultSchema = z.object({
 });
 export type CoverArtResult = z.infer<typeof CoverArtResultSchema>;
 
-/** Bindery's output: a validated, print-ready interior PDF (plus a wrap cover PDF, once cover art exists). */
+/** Bindery's output: a validated, print-ready interior PDF. */
 export const BinderyResultSchema = z.object({
   interiorPdfPath: z.string(),
   trimSize: z.string(),
   pageCount: z.number().int().positive(),
-  /** Optional for the same reason as CoverArtResultSchema — absent on batches assembled before cover generation existed. */
-  coverPdfPath: z.string().optional(),
   completedAt: isoTimestamp,
 });
 export type BinderyResult = z.infer<typeof BinderyResultSchema>;

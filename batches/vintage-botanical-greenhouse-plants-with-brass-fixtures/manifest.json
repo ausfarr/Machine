@@ -3,7 +3,7 @@
   "stage": "listed",
   "theme": "Vintage botanical greenhouse plants with brass fixtures",
   "createdAt": "2026-08-19T15:08:32.572Z",
-  "updatedAt": "2026-08-19T16:50:20.708Z",
+  "updatedAt": "2026-08-19T17:14:50.139Z",
   "scout": {
     "reportJsonPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/research.json",
     "reportMdPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/research.md",
@@ -34,7 +34,6 @@
     "interiorPdfPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/interior.pdf",
     "trimSize": "8.5x11in",
     "pageCount": 24,
-    "coverPdfPath": "batches/vintage-botanical-greenhouse-plants-with-brass-fixtures/cover.pdf",
     "completedAt": "2026-08-19T16:50:20.708Z"
   },
   "crier": {

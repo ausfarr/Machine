@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { buildTitle } from "../crier/templates.ts";
 import {
   COMPOSITION_TEMPLATES,
   buildCoverPrompt,
   buildPrompt,
-  generateBackCoverBlurbDraft,
   generateBackMatterDraft,
   generateFrontMatterDraft,
 } from "./templates.ts";
@@ -35,14 +35,9 @@ describe("front/back matter drafts", () => {
 });
 
 describe("buildCoverPrompt", () => {
-  it("mentions the theme and doesn't ask for legible text", () => {
+  it("mentions the theme and embeds the same title Crier builds for listing.json", () => {
     const prompt = buildCoverPrompt("Fantasy Castles");
     expect(prompt.toLowerCase()).toContain("fantasy castles");
-  });
-});
-
-describe("generateBackCoverBlurbDraft", () => {
-  it("mentions the theme", () => {
-    expect(generateBackCoverBlurbDraft("Fantasy Castles").toLowerCase()).toContain("fantasy castles");
+    expect(prompt).toContain(buildTitle("Fantasy Castles"));
   });
 });

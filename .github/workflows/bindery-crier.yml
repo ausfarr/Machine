@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - "batches/*/images/**"
-      - "batches/*/cover-art.png"
 
 permissions:
   contents: write
@@ -25,11 +24,11 @@ jobs:
         run: |
           BEFORE="${{ github.event.before }}"
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
-            CHANGED=$(git show --name-only --pretty="" HEAD -- 'batches/*/images/*' 'batches/*/cover-art.png')
+            CHANGED=$(git show --name-only --pretty="" HEAD -- 'batches/*/images/*')
           else
-            CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}" -- 'batches/*/images/*' 'batches/*/cover-art.png')
+            CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}" -- 'batches/*/images/*')
           fi
-          ALL_IDS=$(echo "$CHANGED" | sed -E 's#^batches/([^/]+)/(images/.*|cover-art\.png)$#\1#' | sort -u)
+          ALL_IDS=$(echo "$CHANGED" | sed -E 's#^batches/([^/]+)/images/.*#\1#' | sort -u)
 
           # A push can touch images/** for a batch that a full pipeline run
           # (or a prior Bindery run) already carried past "imaged" — e.g. the
@@ -84,6 +83,6 @@ jobs:
           title: "Assembled: ${{ matrix.batch_id }}"
           labels: automated-batch
           body: |
-            Bindery validated the images and cover art and assembled `interior.pdf` and `cover.pdf`; Crier drafted `listing.json`, now that images are in place for `${{ matrix.batch_id }}`.
+            Bindery validated the images and assembled `interior.pdf`; Crier drafted `listing.json`, now that images are in place for `${{ matrix.batch_id }}`.
 
-            This PR does not publish anything to KDP. A human should proof the interior PDF, cover PDF, and listing copy, then publish externally — disclosing the AI-generated listing content per KDP's requirements, since this repo never obscures that.
+            This PR does not publish anything to KDP. A human should proof the interior PDF and listing copy, then publish externally — disclosing the AI-generated listing content per KDP's requirements, since this repo never obscures that.

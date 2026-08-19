@@ -3,7 +3,7 @@
   "stage": "listed",
   "theme": "Cozy witch cottages with potion gardens",
   "createdAt": "2026-08-19T14:59:07.440Z",
-  "updatedAt": "2026-08-19T16:49:57.410Z",
+  "updatedAt": "2026-08-19T17:14:28.094Z",
   "scout": {
     "reportJsonPath": "batches/cozy-witch-cottages-with-potion-gardens/research.json",
     "reportMdPath": "batches/cozy-witch-cottages-with-potion-gardens/research.md",
@@ -34,7 +34,6 @@
     "interiorPdfPath": "batches/cozy-witch-cottages-with-potion-gardens/interior.pdf",
     "trimSize": "8.5x11in",
     "pageCount": 4,
-    "coverPdfPath": "batches/cozy-witch-cottages-with-potion-gardens/cover.pdf",
     "completedAt": "2026-08-19T16:49:57.410Z"
   },
   "crier": {
