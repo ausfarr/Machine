@@ -12,6 +12,36 @@ function isPipelineLive(status: LedgerStatusFile): boolean {
   return status.agents.some((a) => a.agent !== "ledger" && a.status === "active");
 }
 
+/**
+ * Real revenue per currency, or an honest "no sales data yet" — never a
+ * fabricated "$0", since a batch with no sales report and a batch with a
+ * report showing zero sales mean different things (CLAUDE.md's
+ * no-fabricated-data guardrail).
+ */
+function RevenueStat({ fleet }: { fleet: LedgerStatusFile["fleet"] }) {
+  if (fleet.batchesWithSalesData === 0) {
+    return (
+      <div className="text-right">
+        <p className="text-[11px] font-semibold tracking-wide text-slate-500">REVENUE</p>
+        <p className="mt-1 text-sm text-slate-500">No sales data yet</p>
+      </div>
+    );
+  }
+
+  const entries = Object.entries(fleet.totalRevenueByCurrency);
+  return (
+    <div className="text-right">
+      <p className="text-[11px] font-semibold tracking-wide text-slate-500">REVENUE</p>
+      {entries.map(([currency, total]) => (
+        <p key={currency} className="text-lg font-bold text-slate-100">
+          {total.toFixed(2)} {currency}
+        </p>
+      ))}
+      <p className="mt-0.5 text-[11px] text-slate-500">{fleet.totalUnitsSold} units sold</p>
+    </div>
+  );
+}
+
 export function Header({
   status,
   lastSyncedAt,
@@ -45,6 +75,7 @@ export function Header({
             <p className="text-[11px] font-semibold tracking-wide text-slate-500">TOTAL TRACKED</p>
             <p className="text-3xl font-bold text-slate-100">{status.summary.totalBatches}</p>
           </div>
+          <RevenueStat fleet={status.fleet} />
           <span
             key={pulseKey}
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide ${

@@ -31,7 +31,13 @@ export interface BatchStatus {
   coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
   crier: StageStatus<{ completedAt: string; aiGeneratedDisclosure: true }>;
-  published: StageStatus<{ publishedAt: string }>;
+  published: StageStatus<{
+    publishedAt: string;
+    asin?: string;
+    priceUsd?: number;
+    marketplaceUrl?: string;
+    sales?: { unitsSold: number; royaltyTotal: number; currency: string; reportPeriodEnd: string; lastUpdated: string };
+  }>;
 }
 
 export interface InvalidBatch {
@@ -80,6 +86,20 @@ export interface ActivityEvent {
   summary: string;
 }
 
+/**
+ * Real, aggregated sales data across every batch's published.sales block —
+ * only ever summed from manifest fields that themselves trace back to a
+ * parsed KDP report (see Analyst). Currencies are never force-converted or
+ * summed together, per CLAUDE.md's no-fabricated-data guardrail: a batch
+ * priced in GBP and one in USD stay as two separate totals.
+ */
+export interface FleetSummary {
+  totalRevenueByCurrency: Record<string, number>;
+  totalUnitsSold: number;
+  /** Count of batches that have at least one real sales report matched to them. */
+  batchesWithSalesData: number;
+}
+
 export interface LedgerStatusFile {
   generatedAt: string;
   summary: {
@@ -94,6 +114,7 @@ export interface LedgerStatusFile {
   agents: AgentActivity[];
   /** Real, timestamped events drawn from batch manifests, newest first. */
   activity: ActivityEvent[];
+  fleet: FleetSummary;
 }
 
 function toBatchStatus(manifest: BatchManifest): BatchStatus {
@@ -122,7 +143,16 @@ function toBatchStatus(manifest: BatchManifest): BatchStatus {
       ? { done: true, detail: { completedAt: manifest.crier.completedAt, aiGeneratedDisclosure: true } }
       : { done: false },
     published: manifest.published
-      ? { done: true, detail: { publishedAt: manifest.published.publishedAt } }
+      ? {
+          done: true,
+          detail: {
+            publishedAt: manifest.published.publishedAt,
+            asin: manifest.published.asin,
+            priceUsd: manifest.published.priceUsd,
+            marketplaceUrl: manifest.published.marketplaceUrl,
+            sales: manifest.published.sales,
+          },
+        }
       : { done: false },
   };
 }
@@ -163,8 +193,10 @@ function readSentinelRunLog(path: string): SentinelRunLogEntry[] {
  * Derives each real agent's dashboard-facing activity from the batches
  * Ledger already validated, plus Sentinel's real run-log — never a
  * separate source of truth, and never a fabricated number. Analyst has
- * no producer yet (see CLAUDE.md "Build order"), so it honestly reports
- * not_yet_run/0 until a human uploads a real KDP export.
+ * no run-log of its own; its activity is derived from the real
+ * published.sales.lastUpdated timestamps it writes into batch manifests,
+ * so it honestly reports not_yet_run/0 until a human uploads a real KDP
+ * export that matches at least one batch.
  */
 function computeAgentActivity(batches: BatchStatus[], generatedAt: string, sentinelRunLog: SentinelRunLogEntry[]): AgentActivity[] {
   const now = new Date(generatedAt);
@@ -188,6 +220,9 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string, senti
 
   const sentinelLast = latestOf(sentinelRunLog.map((e) => e.at));
   const fixPrsDrafted = sentinelRunLog.filter((e) => e.outcome === "patch_applied").length;
+
+  const batchesWithSales = batches.filter((b) => b.published.done && b.published.detail?.sales);
+  const analystLast = latestOf(batchesWithSales.map((b) => b.published.detail?.sales?.lastUpdated));
 
   return [
     {
@@ -234,9 +269,9 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string, senti
     },
     {
       agent: "analyst",
-      status: "not_yet_run",
-      lastRanAt: null,
-      metric: { label: "Royalties reported", value: 0 },
+      status: statusFor(analystLast, now),
+      lastRanAt: analystLast,
+      metric: { label: "Royalties reported", value: batchesWithSales.length },
     },
   ];
 }
@@ -316,6 +351,34 @@ function computeActivityFeed(batches: BatchStatus[]): ActivityEvent[] {
 }
 
 /**
+ * Sums real published.sales.royaltyTotal across every batch, grouped by
+ * currency — never force-converted or summed across currencies, per
+ * CLAUDE.md's no-fabricated-data guardrail. batchesWithSalesData is an
+ * explicit count so the dashboard can render "not yet published" instead
+ * of misreading an empty totals map as zero revenue.
+ */
+/** Rounds a running money total to the nearest cent, so summing many batches' royaltyTotal never drifts into float noise like 44.849999999999994. */
+function roundCents(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function computeFleetSummary(batches: BatchStatus[]): FleetSummary {
+  const totalRevenueByCurrency: Record<string, number> = {};
+  let totalUnitsSold = 0;
+  let batchesWithSalesData = 0;
+
+  for (const b of batches) {
+    const sales = b.published.done ? b.published.detail?.sales : undefined;
+    if (!sales) continue;
+    batchesWithSalesData += 1;
+    totalUnitsSold += sales.unitsSold;
+    totalRevenueByCurrency[sales.currency] = roundCents((totalRevenueByCurrency[sales.currency] ?? 0) + sales.royaltyTotal);
+  }
+
+  return { totalRevenueByCurrency, totalUnitsSold, batchesWithSalesData };
+}
+
+/**
  * Reads every batch's manifest.json (the only run-history record this
  * pipeline produces so far — there's no separate agent run-log yet) and
  * writes a status file the dashboard renders. Never invents a number: a
@@ -370,6 +433,7 @@ export function runLedger(options: LedgerRunOptions = {}): LedgerStatusFile {
     invalidBatches,
     agents: computeAgentActivity(batches, generatedAt, readSentinelRunLog(sentinelRunLogPath)),
     activity: computeActivityFeed(batches),
+    fleet: computeFleetSummary(batches),
   };
 
   mkdirSync(dirname(outputPath), { recursive: true });

@@ -10,6 +10,7 @@ import { BatchDetailDrawer } from "./components/BatchDetailDrawer";
 import { PipelineRunBanner } from "./components/PipelineRunBanner";
 import { TriggerPipelineButton } from "./components/TriggerPipelineButton";
 import { ScheduleStatus } from "./components/ScheduleStatus";
+import { KdpReportUpload } from "./components/KdpReportUpload";
 import { usePipelineRuns } from "./lib/githubActions";
 
 const STATUS_POLL_MS = 20_000;
@@ -94,6 +95,8 @@ export default function App() {
             <PipelineRunBanner runs={pipelineRuns} />
 
             <CentralVisualization agents={status.agents} />
+
+            <KdpReportUpload batches={status.batches} />
 
             <AgentRoster agents={status.agents} onSelect={setSelectedAgent} />
 

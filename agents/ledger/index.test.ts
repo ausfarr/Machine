@@ -8,6 +8,8 @@ import { fakeClaudeClient } from "../scout/testFixtures.ts";
 import { runLoom } from "../loom/index.ts";
 import { runEtch } from "../etch/index.ts";
 import type { ImageGenClient } from "../etch/geminiClient.ts";
+import { runAnalyst } from "../analyst/index.ts";
+import { writePublishedBatch } from "../analyst/testFixtures.ts";
 import { runLedger } from "./index.ts";
 
 async function tinyPngBuffer(): Promise<Buffer> {
@@ -222,5 +224,54 @@ describe("runLedger", () => {
     expect(status.summary.totalBatches).toBe(2);
     expect(status.summary.byStage.published).toBe(0);
     expect(status.summary.batchesInProgress).toBe(2);
+  });
+
+  it("reports an honest zero fleet summary when no batch has sales data", () => {
+    tempDir = mkdtempSync(join(tmpdir(), "ledger-test-"));
+    const batchesDir = join(tempDir, "batches");
+    writePublishedBatch(batchesDir, "no-sales-batch", "No Sales Batch", "B0NOSALES1");
+
+    const status = runLedger({ batchesDir, outputPath: join(tempDir, "status.json") });
+
+    expect(status.fleet).toEqual({ totalRevenueByCurrency: {}, totalUnitsSold: 0, batchesWithSalesData: 0 });
+
+    const analyst = status.agents.find((a) => a.agent === "analyst");
+    expect(analyst).toEqual({
+      agent: "analyst",
+      status: "not_yet_run",
+      lastRanAt: null,
+      metric: { label: "Royalties reported", value: 0 },
+    });
+  });
+
+  it("sums real royalty totals per batch, grouped by currency and never combined across currencies", () => {
+    tempDir = mkdtempSync(join(tmpdir(), "ledger-test-"));
+    const batchesDir = join(tempDir, "batches");
+    writePublishedBatch(batchesDir, "usd-batch-1", "USD Batch 1", "B0USDONE01");
+    writePublishedBatch(batchesDir, "usd-batch-2", "USD Batch 2", "B0USDTWO02");
+    writePublishedBatch(batchesDir, "gbp-batch", "GBP Batch", "B0GBPONE01");
+    writePublishedBatch(batchesDir, "no-report-yet", "No Report Yet", "B0NOREPRT1");
+
+    runAnalyst(
+      [
+        "ASIN,Currency,Net Units Sold,Royalty,Royalty Date",
+        "B0USDONE01,USD,10,29.90,07/15/2026",
+        "B0USDTWO02,USD,5,14.95,07/15/2026",
+        "B0GBPONE01,GBP,3,8.10,07/15/2026",
+      ].join("\n"),
+      { batchesDir }
+    );
+
+    const status = runLedger({ batchesDir, outputPath: join(tempDir, "status.json") });
+
+    expect(status.fleet).toEqual({
+      totalRevenueByCurrency: { USD: 44.85, GBP: 8.1 },
+      totalUnitsSold: 18,
+      batchesWithSalesData: 3,
+    });
+
+    const analyst = status.agents.find((a) => a.agent === "analyst");
+    expect(analyst?.status).toBe("active");
+    expect(analyst?.metric).toEqual({ label: "Royalties reported", value: 3 });
   });
 });
