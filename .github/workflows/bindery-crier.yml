@@ -28,8 +28,25 @@ jobs:
           else
             CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}" -- 'batches/*/images/*')
           fi
-          BATCH_IDS=$(echo "$CHANGED" | sed -E 's#^batches/([^/]+)/images/.*#\1#' | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "batches=$BATCH_IDS" >> "$GITHUB_OUTPUT"
+          ALL_IDS=$(echo "$CHANGED" | sed -E 's#^batches/([^/]+)/images/.*#\1#' | sort -u)
+
+          # A push can touch images/** for a batch that a full pipeline run
+          # (or a prior Bindery run) already carried past "imaged" — e.g. the
+          # merge commit of a pipeline PR lands with the batch already at
+          # "listed". Bindery only accepts stage "prompted" or "imaged", so
+          # re-running it on those batches would just fail; skip them here
+          # instead of letting the matrix job error out.
+          BATCH_IDS="[]"
+          for id in $ALL_IDS; do
+            [ -z "$id" ] && continue
+            stage=$(jq -r '.stage // empty' "batches/$id/manifest.json" 2>/dev/null)
+            if [ "$stage" = "prompted" ] || [ "$stage" = "imaged" ]; then
+              BATCH_IDS=$(echo "$BATCH_IDS" | jq --arg id "$id" '. + [$id]')
+            else
+              echo "Skipping $id: manifest stage is \"$stage\", not \"prompted\"/\"imaged\" (Bindery already ran on these images)"
+            fi
+          done
+          echo "batches=$(echo "$BATCH_IDS" | jq -c '.')" >> "$GITHUB_OUTPUT"
 
   assemble-and-list:
     needs: detect-batches
