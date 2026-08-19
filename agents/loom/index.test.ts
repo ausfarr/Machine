@@ -55,6 +55,14 @@ describe("runLoom", () => {
   it("rejects an out-of-range prompt count", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
     const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
-    expect(() => runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 10 })).toThrow(/between 20 and 30/);
+    expect(() => runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 0 })).toThrow(/between 1 and 30/);
+    expect(() => runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 31 })).toThrow(/between 1 and 30/);
+  });
+
+  it("allows a small prompt count for testing", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
+    const result = runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 5 });
+    expect(result.manifest.loom?.promptCount).toBe(5);
   });
 });
