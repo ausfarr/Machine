@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
+import { generateBackCoverBlurbDraft } from "../loom/templates.ts";
 import { assembleInteriorPdf } from "./assemble.ts";
 import { assembleCoverPdf } from "./assembleCover.ts";
 import { TRIM_SIZE_LABEL } from "./kdpSpecs.ts";
@@ -50,10 +51,10 @@ export async function runBindery(batchId: string, options: BinderyRunOptions = {
       `Bindery: no cover art found at ${coverArtPath}. Run Etch to generate one, or drop a "${COVER_ART_FILENAME}" file into ${batchDir} by hand before running Bindery.`
     );
   }
-  const backCoverBlurb = existingManifest.loom?.backCoverBlurbDraft;
-  if (!backCoverBlurb) {
-    throw new Error(`Batch "${batchId}" manifest is missing loom.backCoverBlurbDraft — cannot assemble a cover.`);
-  }
+  // Falls back to Loom's own deterministic draft-generator for a batch whose
+  // stored manifest predates this field — that function only needs the
+  // theme, not a fresh Loom run, so this isn't fabricated text.
+  const backCoverBlurb = existingManifest.loom?.backCoverBlurbDraft ?? generateBackCoverBlurbDraft(existingManifest.theme);
 
   const interiorPdfPath = join(batchDir, "interior.pdf");
   const pageCount = await assembleInteriorPdf(images, interiorPdfPath);

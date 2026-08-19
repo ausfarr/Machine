@@ -39,7 +39,7 @@ describe("runLoom", () => {
     const frontBack = readFileSync(result.frontBackMatterPath, "utf-8");
     expect(frontBack).toContain("Fantasy Castles");
 
-    expect(manifest.loom?.backCoverBlurbDraft.toLowerCase()).toContain("fantasy castles");
+    expect(manifest.loom?.backCoverBlurbDraft?.toLowerCase()).toContain("fantasy castles");
   });
 
   it("refuses to run on a batch that isn't at stage researched", async () => {

@@ -2,11 +2,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 import { MIN_IMAGE_HEIGHT_PX, MIN_IMAGE_WIDTH_PX } from "../bindery/kdpSpecs.ts";
-import { COVER_STYLE_GUIDANCE } from "../loom/templates.ts";
 import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
+import { generateCoverArt } from "./generateCoverArt.ts";
 import { GeminiImageClient, type ImageGenClient } from "./geminiClient.ts";
 
-const COVER_ART_FILENAME = "cover-art.png";
+export const COVER_ART_FILENAME = "cover-art.png";
 
 export interface EtchRunOptions {
   batchesDir?: string;
@@ -90,24 +90,10 @@ export async function runEtch(batchId: string, options: EtchRunOptions = {}): Pr
   }
 
   const coverArtPath = join(batchDir, COVER_ART_FILENAME);
-  const coverFullPrompt = `${COVER_STYLE_GUIDANCE}\n\n${promptsFile.cover.prompt}`;
-
-  let coverRaw: Buffer;
   try {
-    coverRaw = await imageClient.generateImage(coverFullPrompt);
+    await generateCoverArt(imageClient, promptsFile.cover.prompt, coverArtPath);
   } catch (err) {
-    throw new Error(`Etch: cover art generation failed: ${err instanceof Error ? err.message : err}`);
-  }
-
-  try {
-    await sharp(coverRaw)
-      .resize(MIN_IMAGE_WIDTH_PX, MIN_IMAGE_HEIGHT_PX, { fit: "cover" })
-      .png()
-      .toFile(coverArtPath);
-  } catch (err) {
-    throw new Error(
-      `Etch: could not process Gemini's cover output into a valid PNG: ${err instanceof Error ? err.message : err}`
-    );
+    throw new Error(`Etch: ${err instanceof Error ? err.message : err}`);
   }
 
   const completedAt = new Date().toISOString();
