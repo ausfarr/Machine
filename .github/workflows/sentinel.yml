@@ -1,0 +1,70 @@
+name: Sentinel (CI self-repair)
+
+# Runs after CI fails on a push to main (not on every PR — Sentinel reacts
+# to the mainline breaking, not to work-in-progress branches). Diagnoses
+# the failure via the Anthropic API and, only when confident, opens a PR
+# with a proposed fix. Never merges anything itself.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  diagnose-and-fix:
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Reproduce the failure
+        id: repro
+        continue-on-error: true
+        run: |
+          set +e
+          exit_code=0
+          { npm run typecheck || exit_code=1; } 2>&1 | tee -a sentinel-failure.log
+          { npm test || exit_code=1; } 2>&1 | tee -a sentinel-failure.log
+          exit $exit_code
+
+      - name: Run Sentinel
+        if: steps.repro.outcome == 'failure'
+        id: sentinel
+        continue-on-error: true
+        run: npm run sentinel -- sentinel-failure.log
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Upload diagnosis (always, even if the patch didn't apply)
+        if: steps.repro.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-diagnosis
+          path: |
+            sentinel-failure.log
+            sentinel-report.md
+          retention-days: 30
+
+      - name: Open PR with proposed fix
+        if: steps.sentinel.outputs.patch_applied == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Sentinel: ${{ steps.sentinel.outputs.summary }}"
+          branch: sentinel/fix-${{ github.event.workflow_run.head_sha }}
+          title: "Sentinel: ${{ steps.sentinel.outputs.summary }}"
+          labels: automated-fix
+          body-path: sentinel-report.md
