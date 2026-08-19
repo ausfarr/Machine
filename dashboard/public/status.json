@@ -1,19 +1,65 @@
 {
-  "generatedAt": "2026-08-19T15:00:04.108Z",
+  "generatedAt": "2026-08-19T15:13:14.865Z",
   "summary": {
-    "totalBatches": 2,
+    "totalBatches": 3,
     "invalidBatchCount": 0,
     "byStage": {
       "researched": 0,
       "prompted": 0,
       "imaged": 0,
       "assembled": 0,
-      "listed": 2,
+      "listed": 3,
       "published": 0
     },
-    "batchesInProgress": 2
+    "batchesInProgress": 3
   },
   "batches": [
+    {
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "stage": "listed",
+      "createdAt": "2026-08-19T15:08:32.572Z",
+      "updatedAt": "2026-08-19T15:13:14.569Z",
+      "scout": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T15:08:32.572Z",
+          "competitionLevel": "medium"
+        }
+      },
+      "loom": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T15:08:42.331Z",
+          "promptCount": 24
+        }
+      },
+      "images": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T15:12:15.434Z",
+          "count": 24,
+          "source": "etch"
+        }
+      },
+      "bindery": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T15:13:14.567Z",
+          "pageCount": 24
+        }
+      },
+      "crier": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T15:13:14.569Z",
+          "aiGeneratedDisclosure": true
+        }
+      },
+      "published": {
+        "done": false
+      }
+    },
     {
       "batchId": "cozy-witch-cottages-with-potion-gardens",
       "theme": "Cozy witch cottages with potion gardens",
@@ -112,55 +158,55 @@
     {
       "agent": "scout",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:59:07.440Z",
+      "lastRanAt": "2026-08-19T15:08:32.572Z",
       "metric": {
         "label": "Themes researched",
-        "value": 2
+        "value": 3
       }
     },
     {
       "agent": "loom",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:59:17.940Z",
+      "lastRanAt": "2026-08-19T15:08:42.331Z",
       "metric": {
         "label": "Prompts generated",
-        "value": 8
+        "value": 32
       }
     },
     {
       "agent": "etch",
       "status": "active",
-      "lastRanAt": "2026-08-19T14:59:51.299Z",
+      "lastRanAt": "2026-08-19T15:12:15.434Z",
       "metric": {
         "label": "Images generated",
-        "value": 8
+        "value": 32
       }
     },
     {
       "agent": "bindery",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:00:03.705Z",
+      "lastRanAt": "2026-08-19T15:13:14.567Z",
       "metric": {
         "label": "Interiors assembled",
-        "value": 2
+        "value": 3
       }
     },
     {
       "agent": "crier",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:00:03.708Z",
+      "lastRanAt": "2026-08-19T15:13:14.569Z",
       "metric": {
         "label": "Listings written",
-        "value": 2
+        "value": 3
       }
     },
     {
       "agent": "ledger",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:00:04.108Z",
+      "lastRanAt": "2026-08-19T15:13:14.865Z",
       "metric": {
         "label": "Batches tracked",
-        "value": 2
+        "value": 3
       }
     },
     {
@@ -183,6 +229,41 @@
     }
   ],
   "activity": [
+    {
+      "at": "2026-08-19T15:13:14.569Z",
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "actor": "crier",
+      "summary": "Crier wrote the KDP listing copy for \"Vintage botanical greenhouse plants with brass fixtures\""
+    },
+    {
+      "at": "2026-08-19T15:13:14.567Z",
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 24-page interior for \"Vintage botanical greenhouse plants with brass fixtures\""
+    },
+    {
+      "at": "2026-08-19T15:12:15.434Z",
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "actor": "etch",
+      "summary": "Etch generated 24 image(s) for \"Vintage botanical greenhouse plants with brass fixtures\""
+    },
+    {
+      "at": "2026-08-19T15:08:42.331Z",
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "actor": "loom",
+      "summary": "Loom wrote 24 image prompts for \"Vintage botanical greenhouse plants with brass fixtures\""
+    },
+    {
+      "at": "2026-08-19T15:08:32.572Z",
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "actor": "scout",
+      "summary": "Scout researched \"Vintage botanical greenhouse plants with brass fixtures\" (competition: medium)"
+    },
     {
       "at": "2026-08-19T15:00:03.708Z",
       "batchId": "cozy-witch-cottages-with-potion-gardens",
