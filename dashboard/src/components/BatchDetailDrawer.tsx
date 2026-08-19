@@ -2,14 +2,7 @@ import { useEffect, useState } from "react";
 import type { BatchStatus } from "../types";
 import { formatDate, formatRelative } from "../lib/format";
 import { STAGE_BADGE_CLASSES, STAGE_LABELS } from "./BatchList";
-import {
-  COVER_BLEED_IN,
-  MIN_PAGES_FOR_SPINE_TEXT,
-  REQUIRED_DPI,
-  TRIM_SIZE_LABEL,
-  gutterMarginIn,
-  spineWidthIn,
-} from "../../../agents/bindery/kdpSpecs";
+import { REQUIRED_DPI, TRIM_SIZE_LABEL, gutterMarginIn } from "../../../agents/bindery/kdpSpecs";
 
 const RAW_BASE = "https://raw.githubusercontent.com/ausfarr/Machine/main/batches";
 
@@ -236,25 +229,14 @@ function PrintSpecPanel({ batch, trimSize, loading }: { batch: BatchStatus; trim
 
   const pageCount = batch.bindery.detail.pageCount;
   const gutter = gutterMarginIn(pageCount);
-  const spine = spineWidthIn(pageCount);
-  const clearsSpineText = pageCount >= MIN_PAGES_FOR_SPINE_TEXT;
   const trimSizeValue = loading ? "Loading…" : (trimSize ?? TRIM_SIZE_LABEL);
 
   return (
-    <div className="mt-3">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Spec label="Trim size" value={trimSizeValue} />
-        <Spec label="Required DPI" value={`${REQUIRED_DPI}`} />
-        <Spec label="Page count" value={`${pageCount}`} />
-        <Spec label="Gutter margin" value={`${gutter.toFixed(3)}in`} />
-        <Spec label="Cover bleed" value={`${COVER_BLEED_IN}in`} />
-        <Spec label="Spine width" value={`${spine.toFixed(4)}in`} />
-      </div>
-      {!clearsSpineText && (
-        <p className="mt-2 text-[11px] text-slate-500">
-          Spine left blank &mdash; under {MIN_PAGES_FOR_SPINE_TEXT}pg.
-        </p>
-      )}
+    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <Spec label="Trim size" value={trimSizeValue} />
+      <Spec label="Required DPI" value={`${REQUIRED_DPI}`} />
+      <Spec label="Page count" value={`${pageCount}`} />
+      <Spec label="Gutter margin" value={`${gutter.toFixed(3)}in`} />
     </div>
   );
 }
