@@ -84,10 +84,30 @@ export const CrierResultSchema = z.object({
 });
 export type CrierResult = z.infer<typeof CrierResultSchema>;
 
+/**
+ * Set once a real KDP royalty report (uploaded/parsed by a human via
+ * Analyst) has been matched to a batch by ASIN. Only ever written from a
+ * parsed CSV row — never estimated or fabricated. `lastUpdated` tracks
+ * when this block was last merged from a report so a repeat report for
+ * the same ASIN updates in place instead of duplicating.
+ */
+export const SalesResultSchema = z.object({
+  unitsSold: z.number().int().nonnegative(),
+  royaltyTotal: z.number().nonnegative(),
+  currency: z.string().min(1),
+  reportPeriodEnd: isoTimestamp,
+  lastUpdated: isoTimestamp,
+});
+export type SalesResult = z.infer<typeof SalesResultSchema>;
+
 /** Set only after a human has published the batch externally. */
 export const PublishedResultSchema = z.object({
   publishedAt: isoTimestamp,
   asin: z.string().optional(),
+  priceUsd: z.number().nonnegative().optional(),
+  marketplaceUrl: z.string().optional(),
+  /** Only present once a real KDP report has been matched to this batch's ASIN — never a placeholder. */
+  sales: SalesResultSchema.optional(),
 });
 export type PublishedResult = z.infer<typeof PublishedResultSchema>;
 

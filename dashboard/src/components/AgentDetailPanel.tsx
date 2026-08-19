@@ -18,8 +18,9 @@ function agentTouchedBatch(agent: AgentKey, batch: BatchStatus): boolean {
       return batch.crier.done;
     case "ledger":
       return true;
-    case "sentinel":
     case "analyst":
+      return Boolean(batch.published.done && batch.published.detail?.sales);
+    case "sentinel":
       return false;
   }
 }

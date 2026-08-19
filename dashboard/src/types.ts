@@ -21,7 +21,13 @@ export interface BatchStatus {
   coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
   crier: StageStatus<{ completedAt: string; aiGeneratedDisclosure: true }>;
-  published: StageStatus<{ publishedAt: string }>;
+  published: StageStatus<{
+    publishedAt: string;
+    asin?: string;
+    priceUsd?: number;
+    marketplaceUrl?: string;
+    sales?: { unitsSold: number; royaltyTotal: number; currency: string; reportPeriodEnd: string; lastUpdated: string };
+  }>;
 }
 
 export interface InvalidBatch {
@@ -52,6 +58,12 @@ export interface ActivityEvent {
   summary: string;
 }
 
+export interface FleetSummary {
+  totalRevenueByCurrency: Record<string, number>;
+  totalUnitsSold: number;
+  batchesWithSalesData: number;
+}
+
 export interface LedgerStatusFile {
   generatedAt: string;
   summary: {
@@ -64,4 +76,5 @@ export interface LedgerStatusFile {
   invalidBatches: InvalidBatch[];
   agents: AgentActivity[];
   activity: ActivityEvent[];
+  fleet: FleetSummary;
 }
