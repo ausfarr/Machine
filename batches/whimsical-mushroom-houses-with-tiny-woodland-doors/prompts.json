@@ -1,0 +1,24 @@
+{
+  "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+  "theme": "Whimsical mushroom houses with tiny woodland doors",
+  "generatedAt": "2026-08-19T14:04:13.800Z",
+  "styleGuidance": "Black-and-white line art only: bold, clean outlines, no shading, no gradients, no color, no gray fill, white background. Designed for an 8.5x11in KDP coloring book interior page, single subject per page unless the prompt says otherwise.",
+  "prompts": [
+    {
+      "index": 1,
+      "prompt": "A close-up view of Whimsical mushroom houses with tiny woodland doors, bold clean linework, no shading, no color, white background, coloring book page."
+    },
+    {
+      "index": 2,
+      "prompt": "A wide establishing shot of Whimsical mushroom houses with tiny woodland doors with layered background detail, bold outlines, no color, coloring book page."
+    },
+    {
+      "index": 3,
+      "prompt": "Whimsical mushroom houses with tiny woodland doors viewed from a low angle looking upward, dramatic perspective, bold linework, no color, coloring book page."
+    },
+    {
+      "index": 4,
+      "prompt": "A symmetrical, centered composition of Whimsical mushroom houses with tiny woodland doors with a decorative border, bold outlines, no color, coloring book page."
+    }
+  ]
+}
