@@ -40,6 +40,11 @@ partial or malformed PDF.
   even pages = verso, gutter on the right).
 - Each image is scaled to fit its page's content box (preserving aspect
   ratio) and centered.
+- Before embedding, each image is re-encoded as grayscale, palette-quantized
+  PNG at max compression (`assemble.ts`'s `recompressForPrint`). The interior
+  is black-and-white line art per spec, but raw Etch/Gemini output (and most
+  human-supplied scans) is full-RGB with generation noise that otherwise
+  balloons a 20-30 page `interior.pdf` past GitHub's 100MB single-file limit.
 
 These margin numbers are a reasonable default, not a guarantee — reconfirm
 against KDP's current spec sheet before publishing, since Amazon can
