@@ -10,6 +10,8 @@ import {
 export interface LedgerRunOptions {
   batchesDir?: string;
   outputPath?: string;
+  /** Path to Sentinel's real run-log (see sentinel.yml's "Record Sentinel run" step). Defaults to agents/sentinel/run-log.json. */
+  sentinelRunLogPath?: string;
 }
 
 export interface StageStatus<T extends Record<string, unknown> = Record<string, never>> {
@@ -38,10 +40,11 @@ export interface InvalidBatch {
 }
 
 /**
- * Real agent modules from CLAUDE.md's Agents section. Sentinel and
- * Analyst are documented there but not built yet (see CLAUDE.md "Build
- * order") — Ledger still lists them, honestly reporting "not_yet_run"
- * until they exist and produce real data to read.
+ * Real agent modules from CLAUDE.md's Agents section. Analyst has no
+ * producer yet (see CLAUDE.md "Build order") — Ledger honestly reports
+ * "not_yet_run" for it until a human uploads a real KDP export. Sentinel
+ * is built and reads real data from its own run-log (see
+ * sentinelRunLogPath below).
  */
 export const AGENT_KEYS = ["scout", "loom", "etch", "bindery", "crier", "ledger", "sentinel", "analyst"] as const;
 export type AgentKey = (typeof AGENT_KEYS)[number];
@@ -136,14 +139,34 @@ function statusFor(lastRanAt: string | null, now: Date): AgentRunStatus {
   return now.getTime() - new Date(lastRanAt).getTime() <= ACTIVE_WINDOW_MS ? "active" : "idle";
 }
 
+/** One real Sentinel CI-diagnosis run — written by sentinel.yml's "Record Sentinel run" step, never by Ledger itself. */
+export interface SentinelRunLogEntry {
+  at: string;
+  headSha: string;
+  outcome: "patch_applied" | "no_confident_fix" | "error";
+  summary: string;
+  prUrl?: string;
+}
+
+/** Reads Sentinel's real run-log. A missing or unparseable file honestly means "never run", same as an agent with no batch data — never a placeholder. */
+function readSentinelRunLog(path: string): SentinelRunLogEntry[] {
+  if (!existsSync(path)) return [];
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf-8"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Derives each real agent's dashboard-facing activity from the batches
- * Ledger already validated — never a separate source of truth, and never
- * a fabricated number. Sentinel and Analyst have no producer yet (see
- * CLAUDE.md "Build order"), so they honestly report not_yet_run/0 until
- * they exist and write real data somewhere Ledger can read.
+ * Ledger already validated, plus Sentinel's real run-log — never a
+ * separate source of truth, and never a fabricated number. Analyst has
+ * no producer yet (see CLAUDE.md "Build order"), so it honestly reports
+ * not_yet_run/0 until a human uploads a real KDP export.
  */
-function computeAgentActivity(batches: BatchStatus[], generatedAt: string): AgentActivity[] {
+function computeAgentActivity(batches: BatchStatus[], generatedAt: string, sentinelRunLog: SentinelRunLogEntry[]): AgentActivity[] {
   const now = new Date(generatedAt);
 
   const scoutRuns = batches.filter((b) => b.scout.done);
@@ -162,6 +185,9 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string): Agen
 
   const crierRuns = batches.filter((b) => b.crier.done);
   const crierLast = latestOf(crierRuns.map((b) => b.crier.detail?.completedAt));
+
+  const sentinelLast = latestOf(sentinelRunLog.map((e) => e.at));
+  const fixPrsDrafted = sentinelRunLog.filter((e) => e.outcome === "patch_applied").length;
 
   return [
     {
@@ -202,9 +228,9 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string): Agen
     },
     {
       agent: "sentinel",
-      status: "not_yet_run",
-      lastRanAt: null,
-      metric: { label: "Fix PRs drafted", value: 0 },
+      status: statusFor(sentinelLast, now),
+      lastRanAt: sentinelLast,
+      metric: { label: "Fix PRs drafted", value: fixPrsDrafted },
     },
     {
       agent: "analyst",
@@ -301,6 +327,7 @@ function computeActivityFeed(batches: BatchStatus[]): ActivityEvent[] {
 export function runLedger(options: LedgerRunOptions = {}): LedgerStatusFile {
   const batchesDir = options.batchesDir ?? "batches";
   const outputPath = options.outputPath ?? join("dashboard", "public", "status.json");
+  const sentinelRunLogPath = options.sentinelRunLogPath ?? join("agents", "sentinel", "run-log.json");
 
   const byStage = Object.fromEntries(BATCH_STAGES.map((s) => [s, 0])) as Record<BatchStage, number>;
   const batches: BatchStatus[] = [];
@@ -341,7 +368,7 @@ export function runLedger(options: LedgerRunOptions = {}): LedgerStatusFile {
     },
     batches,
     invalidBatches,
-    agents: computeAgentActivity(batches, generatedAt),
+    agents: computeAgentActivity(batches, generatedAt, readSentinelRunLog(sentinelRunLogPath)),
     activity: computeActivityFeed(batches),
   };
 

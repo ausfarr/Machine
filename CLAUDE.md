@@ -87,7 +87,10 @@ Each agent is a self-contained script with one job.
 ### Sentinel — repo self-improvement & ops
 - Input: CI run results, test failures, dependency audit output from this repo
 - Output: a diagnosis of what broke or drifted, plus a draft fix (PR) —
-  never auto-merged
+  never auto-merged — and one real entry appended to
+  `agents/sentinel/run-log.json` per attempted run (whether or not a
+  confident fix resulted), which Ledger reads for its real dashboard
+  status/metric
 - Uses the Anthropic API to analyze failures and draft fixes. This is the
   third and last authorized use of that key — see "Authorized external
   APIs" above; add it there before building this agent, not after.

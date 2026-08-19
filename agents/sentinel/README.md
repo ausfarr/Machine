@@ -52,6 +52,19 @@ a human even when this happens.
   practice means this repo's own agent/schema/dashboard code, not batch
   content.
 
+## Run log (`run-log.json`)
+
+Every time `sentinel.yml` actually reproduces a CI failure and runs
+Sentinel (whether or not a confident fix was found), the workflow's
+"Record Sentinel run" step appends one entry to `run-log.json` on `main`
+via the GitHub Contents API — `{ at, headSha, outcome, summary, prUrl? }`,
+`outcome` one of `patch_applied` / `no_confident_fix` / `error`, capped at
+the most recent 200 entries. This is Sentinel's only persistent record;
+Ledger reads it for the dashboard's real Sentinel status and "Fix PRs
+drafted" metric instead of a hardcoded placeholder. Sentinel itself never
+writes this file — only the workflow does, after the run completes,
+independent of whatever the working tree looks like post-patch-attempt.
+
 ## Files
 
 - `claudeClient.ts` — the Anthropic API wrapper (`diagnose`), dependency-injectable for tests
@@ -59,3 +72,4 @@ a human even when this happens.
 - `index.ts` — `runSentinel()`, the agent's entry point
 - `cli.ts` — CLI wrapper (`npm run sentinel`)
 - `testFixtures.ts` — `fakeSentinelClient()` for tests that don't need a real API call
+- `run-log.json` — real run history, written by `sentinel.yml`, read by Ledger
