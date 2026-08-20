@@ -18,9 +18,14 @@ folder and updates `manifest.json` to stage `imaged`, with
 
 Etch calls the Gemini API — the only external API it's authorized to
 call, per CLAUDE.md's "Authorized external APIs" section. Each prompt is
-sent along with Loom's shared `styleGuidance` string, and the result is
+sent along with `prompts.json`'s shared `styleGuidance` string, and the
+cover prompt along with its own `cover.styleGuidance`; the result is
 resized to Bindery's minimum print resolution (2550x3300px, 300 DPI at
-8.5x11in) before being written to disk.
+8.5x11in) before being written to disk. Etch is a generic image executor
+for any illustrated category — it has no coloring-book-specific (or any
+other style-specific) logic of its own; every bit of style guidance comes
+from `prompts.json`, which Loom wrote for whichever `IllustrationStyle`
+the batch's category needs (see `agents/loom/README.md`).
 
 ## Which API call, and why
 

@@ -62,17 +62,29 @@ function useBatchRawData(batchId: string, needsListing: boolean, needsTrimSize: 
   return { listing, trimSize, loading };
 }
 
-type StepKey = "scout" | "loom" | "images" | "coverArt" | "bindery" | "crier" | "published";
+type StepKey = "scout" | "loom" | "images" | "coverArt" | "writer" | "bindery" | "crier" | "published";
 
 const STEPS: { key: StepKey; label: string }[] = [
   { key: "scout", label: "Scout" },
   { key: "loom", label: "Loom" },
   { key: "images", label: "Etch (images)" },
   { key: "coverArt", label: "Cover" },
+  { key: "writer", label: "Writer" },
   { key: "bindery", label: "Bindery" },
   { key: "crier", label: "Crier" },
   { key: "published", label: "Published" },
 ];
+
+const ILLUSTRATED_ONLY_STEPS = new Set<StepKey>(["loom", "images", "coverArt"]);
+const TEXT_ONLY_STEPS = new Set<StepKey>(["writer"]);
+
+/** Same content-type filtering as BatchList's visiblePipelineSteps — see its comment. */
+function visibleSteps(batch: BatchStatus): { key: StepKey; label: string }[] {
+  const contentType = batch.opportunityScanner.detail?.contentType;
+  if (contentType === "illustrated") return STEPS.filter((s) => !TEXT_ONLY_STEPS.has(s.key));
+  if (contentType === "text") return STEPS.filter((s) => !ILLUSTRATED_ONLY_STEPS.has(s.key));
+  return STEPS;
+}
 
 function stepDetail(batch: BatchStatus, key: StepKey): { timestamp: string; text: string } | null {
   switch (key) {
@@ -92,6 +104,10 @@ function stepDetail(batch: BatchStatus, key: StepKey): { timestamp: string; text
       return batch.coverArt.done && batch.coverArt.detail
         ? { timestamp: batch.coverArt.detail.addedAt, text: `via ${batch.coverArt.detail.source}` }
         : null;
+    case "writer":
+      return batch.writer.done && batch.writer.detail
+        ? { timestamp: batch.writer.detail.completedAt, text: `${batch.writer.detail.wordCount} words, ${batch.writer.detail.sectionCount} sections` }
+        : null;
     case "bindery":
       return batch.bindery.done && batch.bindery.detail
         ? { timestamp: batch.bindery.detail.completedAt, text: `${batch.bindery.detail.pageCount}-page interior` }
@@ -110,7 +126,7 @@ function stepDetail(batch: BatchStatus, key: StepKey): { timestamp: string; text
 function StageStepper({ batch }: { batch: BatchStatus }) {
   return (
     <div className="flex flex-wrap gap-2.5">
-      {STEPS.map(({ key, label }) => {
+      {visibleSteps(batch).map(({ key, label }) => {
         const detail = stepDetail(batch, key);
         const done = batch[key].done;
         return (

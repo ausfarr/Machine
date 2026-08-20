@@ -1,13 +1,28 @@
 # Bindery
 
-Interior assembly. Takes a batch's final images — from Etch, a human, or
-a human replacing Etch's output — and produces a print-ready interior PDF.
+Interior assembly, in one of two modes depending on the batch's content
+type (see CLAUDE.md's Bindery section):
+
+- **Image-grid** — illustrated batches. Takes a batch's final images —
+  from Etch, a human, or a human replacing Etch's output — and lays out
+  one per page.
+- **Manuscript-typesetting** — Writer-sourced text-only batches. Flows
+  real running text (word-wrap, chapters, front/back matter, running
+  heads, widow/orphan control) into pages instead.
+
+Both modes produce the same kind of output: a print-ready `interior.pdf`
+and a `bindery` manifest block. `runBindery()` picks the mode from the
+batch's stage — `manuscripted` always means manuscript mode; anything
+else goes through the existing validation below and always means
+image-grid mode. It never guesses from content alone.
 
 ## Usage
 
 ```
 npm run bindery -- <batch-id>
 ```
+
+### Image-grid mode
 
 Requires the batch's `manifest.json` to be at stage `prompted` (Loom has
 run; a human is supplying/replacing images by hand) or `imaged` (Etch has
@@ -18,6 +33,37 @@ accepted). Bindery re-validates the images on disk itself either way —
 it never trusts a prior stage's manifest entry over what's actually
 there. The resulting manifest's `images.source` records whether Etch or a
 human produced the final set.
+
+### Manuscript-typesetting mode
+
+Requires the batch's `manifest.json` to be at stage `manuscripted`
+(Writer has run), with a readable `manuscript.json` at
+`manifest.writer.manuscriptJsonPath`. Typesets front matter, one chapter
+per Writer section, and back matter — each chapter starting on a fresh
+page — into `interior.pdf`, using Times-Roman body text at 11pt with a
+1.4x line height. See `typeset.ts` for the full layout algorithm.
+
+**Gutter margin simplification:** a manuscript's final page count is only
+known *after* flowing the text, but KDP's minimum gutter margin
+(`gutterMarginIn()` in `kdpSpecs.ts`) scales with page count — a
+chicken-and-egg problem the image-grid mode never hits, since its page
+count equals the prompt count up front. Rather than flow the whole
+manuscript twice, manuscript mode always uses the largest (safest) gutter
+tier. This never violates KDP's minimum for any page count; a short
+manuscript just ends up with a little more inner margin than it strictly
+needs.
+
+**Widow/orphan control:** when a paragraph must split across pages, a
+lone first line is never stranded alone at the bottom of a page
+(orphan), and a lone last line is never stranded alone at the top of the
+next page (widow) — at least 2 lines move together in both cases. See
+`paginateChapter()` in `typeset.ts`.
+
+A manuscript-mode batch has no `loom`/`images`/`coverArt` at all — that's
+expected, not a missing-data bug; `schemas/manifest.ts`'s stage
+requirements branch on `opportunityScanner.contentType` precisely so a
+real text-only batch doesn't get flagged as invalid for lacking
+illustration fields it was never supposed to have.
 
 ## Validation (fails loudly, never assembles a broken file)
 
@@ -53,7 +99,8 @@ revise these.
 ## Files
 
 - `kdpSpecs.ts` — trim size, margin, and resolution constants
-- `validateImages.ts` — image count/order/resolution validation
-- `assemble.ts` — PDF layout (pdf-lib)
-- `index.ts` — `runBindery()`, the agent's entry point
+- `validateImages.ts` — image count/order/resolution validation (image-grid mode)
+- `assemble.ts` — image-grid PDF layout (pdf-lib)
+- `typeset.ts` — manuscript-typesetting PDF layout: word-wrap, pagination with widow/orphan control, chapters, running heads, folios (pdf-lib)
+- `index.ts` — `runBindery()`, the agent's entry point (picks a mode per batch)
 - `cli.ts` — CLI wrapper (`npm run bindery`)

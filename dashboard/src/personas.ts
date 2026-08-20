@@ -25,6 +25,14 @@ export interface AgentPersona {
 
 export const AGENT_PERSONAS: AgentPersona[] = [
   {
+    agent: "opportunityScanner",
+    personaName: "VANTAGE",
+    tagline: "Surveys the whole shelf before choosing where to stand.",
+    subtitle: "Opportunity Scanner · weekly category selection",
+    portrait: "agents/opportunityScanner.png",
+    accent: "#f97316",
+  },
+  {
     agent: "scout",
     personaName: "ATLAS",
     tagline: "Maps the niche before anyone else finds it.",
@@ -47,6 +55,14 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     subtitle: "Etch · interior image generation",
     portrait: "agents/etch.png",
     accent: "#2dd4bf",
+  },
+  {
+    agent: "writer",
+    personaName: "QUILL",
+    tagline: "Writes the whole book when there's no picture to draw.",
+    subtitle: "Writer · full manuscript generation",
+    portrait: "agents/writer.png",
+    accent: "#e879f9",
   },
   {
     agent: "bindery",

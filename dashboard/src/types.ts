@@ -1,8 +1,16 @@
 /** Mirrors agents/ledger/index.ts's LedgerStatusFile — keep in sync. */
 
-export type BatchStage = "researched" | "prompted" | "imaged" | "assembled" | "listed" | "published";
+export type BatchStage = "researched" | "prompted" | "manuscripted" | "imaged" | "assembled" | "listed" | "published";
 
-export const BATCH_STAGES: BatchStage[] = ["researched", "prompted", "imaged", "assembled", "listed", "published"];
+export const BATCH_STAGES: BatchStage[] = [
+  "researched",
+  "prompted",
+  "manuscripted",
+  "imaged",
+  "assembled",
+  "listed",
+  "published",
+];
 
 export interface StageStatus<T = Record<string, unknown>> {
   done: boolean;
@@ -15,8 +23,10 @@ export interface BatchStatus {
   stage: BatchStage;
   createdAt: string;
   updatedAt: string;
+  opportunityScanner: StageStatus<{ completedAt: string; category: string; contentType: "illustrated" | "text" }>;
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
+  writer: StageStatus<{ completedAt: string; sectionCount: number; wordCount: number; excerpt: string }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
   coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
@@ -36,7 +46,18 @@ export interface InvalidBatch {
 }
 
 /** Real agent modules from CLAUDE.md's Agents section, in build order. */
-export const AGENT_KEYS = ["scout", "loom", "etch", "bindery", "crier", "ledger", "sentinel", "analyst"] as const;
+export const AGENT_KEYS = [
+  "opportunityScanner",
+  "scout",
+  "loom",
+  "etch",
+  "writer",
+  "bindery",
+  "crier",
+  "ledger",
+  "sentinel",
+  "analyst",
+] as const;
 export type AgentKey = (typeof AGENT_KEYS)[number];
 
 export type AgentRunStatus = "active" | "idle" | "not_yet_run";

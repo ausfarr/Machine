@@ -7,6 +7,7 @@ import { z } from "zod";
 export const BATCH_STAGES = [
   "researched",
   "prompted",
+  "manuscripted",
   "imaged",
   "assembled",
   "listed",
@@ -17,6 +18,33 @@ export const BatchStageSchema = z.enum(BATCH_STAGES);
 export type BatchStage = z.infer<typeof BatchStageSchema>;
 
 const isoTimestamp = z.string().datetime({ offset: true });
+
+export const ContentTypeSchema = z.enum(["illustrated", "text"]);
+export type ContentType = z.infer<typeof ContentTypeSchema>;
+
+/** Which family of composition/style templates Loom uses for an illustrated category. Meaningless (and absent) for contentType "text". */
+export const IllustrationStyleSchema = z.enum(["coloring-book", "picture-book"]);
+export type IllustrationStyle = z.infer<typeof IllustrationStyleSchema>;
+
+/**
+ * Opportunity Scanner's output: the KDP category/format it selected for
+ * this batch, grounded in live web_search signal (see CLAUDE.md's
+ * Authorized external APIs section). `contentType` is what routes the
+ * pipeline to Loom+Etch (illustrated) or Writer (text) downstream;
+ * `illustrationStyle` is what routes an illustrated category to the right
+ * Loom prompt family (coloring-book page prompts vs. picture-book
+ * illustration prompts).
+ */
+export const OpportunityScannerResultSchema = z.object({
+  category: z.string(),
+  contentType: ContentTypeSchema,
+  illustrationStyle: IllustrationStyleSchema.optional(),
+  selectionRationale: z.string(),
+  reportJsonPath: z.string(),
+  reportMdPath: z.string(),
+  completedAt: isoTimestamp,
+});
+export type OpportunityScannerResult = z.infer<typeof OpportunityScannerResultSchema>;
 
 /** Scout's output: niche/keyword research on a candidate theme. */
 export const ScoutResultSchema = z.object({
@@ -39,6 +67,25 @@ export const LoomResultSchema = z.object({
   completedAt: isoTimestamp,
 });
 export type LoomResult = z.infer<typeof LoomResultSchema>;
+
+/**
+ * Writer's output: a full manuscript for a text-only category (see
+ * CLAUDE.md's Writer section). `excerpt` and `proofreadRecommended` exist
+ * specifically to be surfaced inline in the pull request — not a separate
+ * approval gate, just more visible than an illustrated batch's PR, since
+ * this is fully AI-generated prose rather than curated illustrations.
+ */
+export const WriterResultSchema = z.object({
+  manuscriptMdPath: z.string(),
+  manuscriptJsonPath: z.string(),
+  sectionCount: z.number().int().positive(),
+  wordCount: z.number().int().positive(),
+  excerpt: z.string(),
+  aiGeneratedDisclosure: z.literal(true),
+  proofreadRecommended: z.literal(true),
+  completedAt: isoTimestamp,
+});
+export type WriterResult = z.infer<typeof WriterResultSchema>;
 
 /** Set once final images exist in batches/{id}/images/, whether Etch generated them or a human supplied/replaced them. */
 export const ImagesResultSchema = z.object({
@@ -117,8 +164,11 @@ export const BatchManifestSchema = z.object({
   theme: z.string().min(1),
   createdAt: isoTimestamp,
   updatedAt: isoTimestamp,
+  /** Absent for a batch created by directly invoking `npm run scout` on a single theme, bypassing category selection for manual testing. */
+  opportunityScanner: OpportunityScannerResultSchema.optional(),
   scout: ScoutResultSchema.optional(),
   loom: LoomResultSchema.optional(),
+  writer: WriterResultSchema.optional(),
   images: ImagesResultSchema.optional(),
   coverArt: CoverArtResultSchema.optional(),
   bindery: BinderyResultSchema.optional(),
@@ -132,19 +182,46 @@ export type BatchManifest = z.infer<typeof BatchManifestSchema>;
  * e.g. stage "assembled" requires scout, loom, images, and bindery to all
  * be present. Catches a manifest that claims a stage without the work
  * behind it, per the "no fabricated data" guardrail.
+ *
+ * "manuscripted" is the text-only sibling of "prompted"/"imaged" (Writer's
+ * output, not Loom/Etch's) — a text batch goes researched -> manuscripted
+ * and then waits there for Bindery's manuscript-typesetting mode, same as
+ * an illustrated batch waits at "imaged" for image-grid Bindery.
+ *
+ * "assembled"/"listed"/"published" branch on contentType, since a
+ * text-only batch never has loom/images (Writer produced its content
+ * instead) and an illustrated batch never has writer — requiring both
+ * unconditionally would make every real batch of one type "invalid" by
+ * the other type's rules. A batch with no opportunityScanner data at all
+ * (created via `npm run scout` directly, predating v2) is treated as
+ * illustrated, matching Loom's own fallback default.
  */
-const STAGE_REQUIREMENTS: Record<BatchStage, (keyof BatchManifest)[]> = {
-  researched: ["scout"],
-  prompted: ["scout", "loom"],
-  imaged: ["scout", "loom", "images"],
-  assembled: ["scout", "loom", "images", "bindery"],
-  listed: ["scout", "loom", "images", "bindery", "crier"],
-  published: ["scout", "loom", "images", "bindery", "crier", "published"],
-};
+const ILLUSTRATED_ASSEMBLED_FIELDS: (keyof BatchManifest)[] = ["scout", "loom", "images", "bindery"];
+const TEXT_ASSEMBLED_FIELDS: (keyof BatchManifest)[] = ["scout", "writer", "bindery"];
+
+function requiredFieldsForStage(manifest: BatchManifest): (keyof BatchManifest)[] {
+  const isText = manifest.opportunityScanner?.contentType === "text";
+  switch (manifest.stage) {
+    case "researched":
+      return ["scout"];
+    case "prompted":
+      return ["scout", "loom"];
+    case "manuscripted":
+      return ["scout", "writer"];
+    case "imaged":
+      return ["scout", "loom", "images"];
+    case "assembled":
+      return isText ? TEXT_ASSEMBLED_FIELDS : ILLUSTRATED_ASSEMBLED_FIELDS;
+    case "listed":
+      return [...(isText ? TEXT_ASSEMBLED_FIELDS : ILLUSTRATED_ASSEMBLED_FIELDS), "crier"];
+    case "published":
+      return [...(isText ? TEXT_ASSEMBLED_FIELDS : ILLUSTRATED_ASSEMBLED_FIELDS), "crier", "published"];
+  }
+}
 
 export function validateManifest(data: unknown): BatchManifest {
   const manifest = BatchManifestSchema.parse(data);
-  const required = STAGE_REQUIREMENTS[manifest.stage];
+  const required = requiredFieldsForStage(manifest);
   const missing = required.filter((field) => manifest[field] === undefined);
   if (missing.length > 0) {
     throw new Error(

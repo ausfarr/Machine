@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +8,8 @@ import { runBindery } from "../bindery/index.ts";
 import { runLoom } from "../loom/index.ts";
 import { runScout } from "../scout/index.ts";
 import { fakeClaudeClient } from "../scout/testFixtures.ts";
+import { runWriter } from "../writer/index.ts";
+import { fakeWriterClient } from "../writer/testFixtures.ts";
 import { runCrier } from "./index.ts";
 
 let tempDir: string | undefined;
@@ -57,5 +59,27 @@ describe("runCrier", () => {
   it("throws if the batch does not exist", () => {
     tempDir = mkdtempSync(join(tmpdir(), "crier-e2e-"));
     expect(() => runCrier("no-such-batch", { batchesDir: tempDir })).toThrow(/No batch found/);
+  });
+
+  it("refuses to run on a text-only (Writer-sourced) batch rather than mis-describing it as a coloring book", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "crier-e2e-"));
+    const scouted = await runScout("Autumn Reflections", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
+
+    const manifestPath = join(scouted.batchDir, "manifest.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+    manifest.opportunityScanner = {
+      category: "Poetry Collections",
+      contentType: "text",
+      selectionRationale: "Test fixture.",
+      reportJsonPath: "fake.json",
+      reportMdPath: "fake.md",
+      completedAt: manifest.createdAt,
+    };
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+    await runWriter(scouted.batchId, { batchesDir: tempDir, client: fakeWriterClient() });
+    await runBindery(scouted.batchId, { batchesDir: tempDir });
+
+    expect(() => runCrier(scouted.batchId, { batchesDir: tempDir })).toThrow(/text-only category/);
   });
 });

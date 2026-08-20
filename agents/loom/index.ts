@@ -1,15 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { PROMPT_COUNT } from "../../config.ts";
-import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
-import {
-  COMPOSITION_TEMPLATES,
-  STYLE_GUIDANCE,
-  buildCoverPrompt,
-  buildPrompt,
-  generateBackMatterDraft,
-  generateFrontMatterDraft,
-} from "./templates.ts";
+import { validateManifest, type BatchManifest, type IllustrationStyle } from "../../schemas/manifest.ts";
+import { DEFAULT_ILLUSTRATION_STYLE, ILLUSTRATION_STYLES, buildPrompt } from "./templates.ts";
 
 export interface LoomRunOptions {
   batchesDir?: string;
@@ -32,9 +25,10 @@ interface PromptsFile {
   batchId: string;
   theme: string;
   generatedAt: string;
+  illustrationStyle: IllustrationStyle;
   styleGuidance: string;
   prompts: PromptEntry[];
-  cover: { prompt: string };
+  cover: { prompt: string; styleGuidance: string };
 }
 
 export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunResult {
@@ -43,11 +37,6 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
 
   if (promptCount < 1 || promptCount > 30) {
     throw new Error("Loom prompt count must be between 1 and 30 (30 is the composition template ceiling).");
-  }
-  if (promptCount > COMPOSITION_TEMPLATES.length) {
-    throw new Error(
-      `Loom only has ${COMPOSITION_TEMPLATES.length} composition templates, cannot generate ${promptCount} unique prompts.`
-    );
   }
 
   const batchDir = join(batchesDir, batchId);
@@ -63,10 +52,22 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
     );
   }
 
+  // Absent when this batch was created by running `npm run scout` directly
+  // on a theme, bypassing Opportunity Scanner — falls back to v1's
+  // coloring-book behavior rather than failing a manual test run.
+  const illustrationStyle = existingManifest.opportunityScanner?.illustrationStyle ?? DEFAULT_ILLUSTRATION_STYLE;
+  const style = ILLUSTRATION_STYLES[illustrationStyle];
+
+  if (promptCount > style.compositionTemplates.length) {
+    throw new Error(
+      `Loom's "${illustrationStyle}" style only has ${style.compositionTemplates.length} composition templates, cannot generate ${promptCount} unique prompts.`
+    );
+  }
+
   const theme = existingManifest.theme;
   const generatedAt = new Date().toISOString();
 
-  const prompts: PromptEntry[] = COMPOSITION_TEMPLATES.slice(0, promptCount).map((template, i) => ({
+  const prompts: PromptEntry[] = style.compositionTemplates.slice(0, promptCount).map((template, i) => ({
     index: i + 1,
     prompt: buildPrompt(theme, template),
   }));
@@ -75,13 +76,14 @@ export function runLoom(batchId: string, options: LoomRunOptions = {}): LoomRunR
     batchId,
     theme,
     generatedAt,
-    styleGuidance: STYLE_GUIDANCE,
+    illustrationStyle,
+    styleGuidance: style.styleGuidance,
     prompts,
-    cover: { prompt: buildCoverPrompt(theme) },
+    cover: { prompt: style.buildCoverPrompt(theme), styleGuidance: style.coverStyleGuidance },
   };
 
-  const frontMatterDraft = generateFrontMatterDraft(theme);
-  const backMatterDraft = generateBackMatterDraft(theme);
+  const frontMatterDraft = style.generateFrontMatterDraft(theme);
+  const backMatterDraft = style.generateBackMatterDraft(theme);
 
   const promptsPath = join(batchDir, "prompts.json");
   writeFileSync(promptsPath, JSON.stringify(promptsFile, null, 2));

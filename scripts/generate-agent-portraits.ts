@@ -26,6 +26,8 @@ const SHARED_STYLE =
   "no logos, no watermark, square aspect ratio, high detail digital art.";
 
 const VISUAL_MOTIFS: Record<string, string> = {
+  opportunityScanner:
+    "A perceptive figure with a wide, panoramic gaze fixed on the far distance, calm and appraising, head tilted slightly as if weighing many possibilities at once. A faint glowing radar-sweep / horizon-line arcs across their brow, one point along it lit brighter than the rest.",
   scout:
     "A young man with short dark hair and a focused, scanning gaze, chin " +
     "slightly lifted as if reading a distant horizon. A faint glowing " +
@@ -40,6 +42,11 @@ const VISUAL_MOTIFS: Record<string, string> = {
     "expression, leaning slightly forward as if mid-work. A single glowing " +
     "line traces fine linework across his cheek and jaw, like a stylus " +
     "etching itself into being.",
+  writer:
+    "A contemplative woman with a distant, inward gaze, mid-thought, as " +
+    "if listening for the next sentence. Faint glowing lines of handwritten " +
+    "script trail from her temple like unspooling thread, gathering into " +
+    "words at her collar.",
   bindery:
     "A composed woman with her hair pulled back and a calm, orderly " +
     "expression. Faint glowing lines like stacked bound pages trace across " +

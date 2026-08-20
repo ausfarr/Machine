@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildTitle } from "../crier/templates.ts";
-import {
-  COMPOSITION_TEMPLATES,
-  buildCoverPrompt,
-  buildPrompt,
-  generateBackMatterDraft,
-  generateFrontMatterDraft,
-} from "./templates.ts";
+import { ILLUSTRATION_STYLES, buildPrompt } from "./templates.ts";
+import type { IllustrationStyle } from "../../schemas/manifest.ts";
+
+const STYLES: IllustrationStyle[] = ["coloring-book", "picture-book"];
 
 describe("buildPrompt", () => {
   it("substitutes the theme into a template", () => {
@@ -14,30 +11,37 @@ describe("buildPrompt", () => {
   });
 });
 
-describe("COMPOSITION_TEMPLATES", () => {
-  it("has at least 30 unique templates", () => {
-    expect(COMPOSITION_TEMPLATES.length).toBeGreaterThanOrEqual(30);
-    expect(new Set(COMPOSITION_TEMPLATES).size).toBe(COMPOSITION_TEMPLATES.length);
-  });
+describe.each(STYLES)("ILLUSTRATION_STYLES[%s]", (styleName) => {
+  const style = ILLUSTRATION_STYLES[styleName];
 
-  it("every template contains a {theme} placeholder", () => {
-    for (const template of COMPOSITION_TEMPLATES) {
+  it("has at least 30 unique composition templates, each with a {theme} placeholder", () => {
+    expect(style.compositionTemplates.length).toBeGreaterThanOrEqual(30);
+    expect(new Set(style.compositionTemplates).size).toBe(style.compositionTemplates.length);
+    for (const template of style.compositionTemplates) {
       expect(template).toContain("{theme}");
     }
   });
-});
 
-describe("front/back matter drafts", () => {
-  it("mention the theme", () => {
-    expect(generateFrontMatterDraft("Fantasy Castles")).toContain("Fantasy Castles");
-    expect(generateBackMatterDraft("Fantasy Castles")).toContain("Fantasy Castles");
+  it("front/back matter drafts mention the theme", () => {
+    expect(style.generateFrontMatterDraft("Fantasy Castles")).toContain("Fantasy Castles");
+    expect(style.generateBackMatterDraft("Fantasy Castles")).toContain("Fantasy Castles");
+  });
+
+  it("buildCoverPrompt mentions the theme and embeds the same title Crier builds for listing.json", () => {
+    const prompt = style.buildCoverPrompt("Fantasy Castles");
+    expect(prompt.toLowerCase()).toContain("fantasy castles");
+    expect(prompt).toContain(buildTitle("Fantasy Castles", styleName));
   });
 });
 
-describe("buildCoverPrompt", () => {
-  it("mentions the theme and embeds the same title Crier builds for listing.json", () => {
-    const prompt = buildCoverPrompt("Fantasy Castles");
-    expect(prompt.toLowerCase()).toContain("fantasy castles");
-    expect(prompt).toContain(buildTitle("Fantasy Castles"));
+describe("style divergence", () => {
+  it("coloring-book and picture-book produce different style guidance and titles", () => {
+    const coloringBook = ILLUSTRATION_STYLES["coloring-book"];
+    const pictureBook = ILLUSTRATION_STYLES["picture-book"];
+
+    expect(coloringBook.styleGuidance).not.toBe(pictureBook.styleGuidance);
+    expect(coloringBook.coverStyleGuidance).not.toBe(pictureBook.coverStyleGuidance);
+    expect(coloringBook.buildCoverPrompt("Fantasy Castles")).not.toBe(pictureBook.buildCoverPrompt("Fantasy Castles"));
+    expect(buildTitle("Fantasy Castles", "coloring-book")).not.toBe(buildTitle("Fantasy Castles", "picture-book"));
   });
 });

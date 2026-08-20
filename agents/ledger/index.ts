@@ -12,6 +12,8 @@ export interface LedgerRunOptions {
   outputPath?: string;
   /** Path to Sentinel's real run-log (see sentinel.yml's "Record Sentinel run" step). Defaults to agents/sentinel/run-log.json. */
   sentinelRunLogPath?: string;
+  /** Path to Opportunity Scanner's real run-log. Defaults to agents/opportunity-scanner/run-log.json. */
+  opportunityScannerRunLogPath?: string;
 }
 
 export interface StageStatus<T extends Record<string, unknown> = Record<string, never>> {
@@ -25,8 +27,10 @@ export interface BatchStatus {
   stage: BatchStage;
   createdAt: string;
   updatedAt: string;
+  opportunityScanner: StageStatus<{ completedAt: string; category: string; contentType: "illustrated" | "text" }>;
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
+  writer: StageStatus<{ completedAt: string; sectionCount: number; wordCount: number; excerpt: string }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
   coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
@@ -52,7 +56,18 @@ export interface InvalidBatch {
  * is built and reads real data from its own run-log (see
  * sentinelRunLogPath below).
  */
-export const AGENT_KEYS = ["scout", "loom", "etch", "bindery", "crier", "ledger", "sentinel", "analyst"] as const;
+export const AGENT_KEYS = [
+  "opportunityScanner",
+  "scout",
+  "loom",
+  "etch",
+  "writer",
+  "bindery",
+  "crier",
+  "ledger",
+  "sentinel",
+  "analyst",
+] as const;
 export type AgentKey = (typeof AGENT_KEYS)[number];
 
 export type AgentRunStatus = "active" | "idle" | "not_yet_run";
@@ -124,11 +139,32 @@ function toBatchStatus(manifest: BatchManifest): BatchStatus {
     stage: manifest.stage,
     createdAt: manifest.createdAt,
     updatedAt: manifest.updatedAt,
+    opportunityScanner: manifest.opportunityScanner
+      ? {
+          done: true,
+          detail: {
+            completedAt: manifest.opportunityScanner.completedAt,
+            category: manifest.opportunityScanner.category,
+            contentType: manifest.opportunityScanner.contentType,
+          },
+        }
+      : { done: false },
     scout: manifest.scout
       ? { done: true, detail: { completedAt: manifest.scout.completedAt, competitionLevel: manifest.scout.competitionLevel } }
       : { done: false },
     loom: manifest.loom
       ? { done: true, detail: { completedAt: manifest.loom.completedAt, promptCount: manifest.loom.promptCount } }
+      : { done: false },
+    writer: manifest.writer
+      ? {
+          done: true,
+          detail: {
+            completedAt: manifest.writer.completedAt,
+            sectionCount: manifest.writer.sectionCount,
+            wordCount: manifest.writer.wordCount,
+            excerpt: manifest.writer.excerpt,
+          },
+        }
       : { done: false },
     images: manifest.images
       ? { done: true, detail: { addedAt: manifest.images.addedAt, count: manifest.images.count, source: manifest.images.source } }
@@ -189,6 +225,27 @@ function readSentinelRunLog(path: string): SentinelRunLogEntry[] {
   }
 }
 
+/** One real Opportunity Scanner category-selection run — written by agents/opportunity-scanner/index.ts, never by Ledger itself. */
+export interface OpportunityScannerRunLogEntry {
+  at: string;
+  selectedCategory: string;
+  contentType: "illustrated" | "text";
+  candidateCount: number;
+  reportJsonPath: string;
+  reportMdPath: string;
+}
+
+/** Reads Opportunity Scanner's real run-log. Same honest-empty behavior as readSentinelRunLog. */
+function readOpportunityScannerRunLog(path: string): OpportunityScannerRunLogEntry[] {
+  if (!existsSync(path)) return [];
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf-8"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Derives each real agent's dashboard-facing activity from the batches
  * Ledger already validated, plus Sentinel's real run-log — never a
@@ -198,8 +255,15 @@ function readSentinelRunLog(path: string): SentinelRunLogEntry[] {
  * so it honestly reports not_yet_run/0 until a human uploads a real KDP
  * export that matches at least one batch.
  */
-function computeAgentActivity(batches: BatchStatus[], generatedAt: string, sentinelRunLog: SentinelRunLogEntry[]): AgentActivity[] {
+function computeAgentActivity(
+  batches: BatchStatus[],
+  generatedAt: string,
+  sentinelRunLog: SentinelRunLogEntry[],
+  opportunityScannerRunLog: OpportunityScannerRunLogEntry[]
+): AgentActivity[] {
   const now = new Date(generatedAt);
+
+  const opportunityScannerLast = latestOf(opportunityScannerRunLog.map((e) => e.at));
 
   const scoutRuns = batches.filter((b) => b.scout.done);
   const scoutLast = latestOf(scoutRuns.map((b) => b.scout.detail?.completedAt));
@@ -211,6 +275,10 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string, senti
   const etchRuns = batches.filter((b) => b.images.done && b.images.detail?.source === "etch");
   const etchLast = latestOf(etchRuns.map((b) => b.images.detail?.addedAt));
   const imagesGenerated = etchRuns.reduce((sum, b) => sum + (b.images.detail?.count ?? 0), 0);
+
+  const writerRuns = batches.filter((b) => b.writer.done);
+  const writerLast = latestOf(writerRuns.map((b) => b.writer.detail?.completedAt));
+  const wordsWritten = writerRuns.reduce((sum, b) => sum + (b.writer.detail?.wordCount ?? 0), 0);
 
   const binderyRuns = batches.filter((b) => b.bindery.done);
   const binderyLast = latestOf(binderyRuns.map((b) => b.bindery.detail?.completedAt));
@@ -225,6 +293,12 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string, senti
   const analystLast = latestOf(batchesWithSales.map((b) => b.published.detail?.sales?.lastUpdated));
 
   return [
+    {
+      agent: "opportunityScanner",
+      status: statusFor(opportunityScannerLast, now),
+      lastRanAt: opportunityScannerLast,
+      metric: { label: "Categories selected", value: opportunityScannerRunLog.length },
+    },
     {
       agent: "scout",
       status: statusFor(scoutLast, now),
@@ -242,6 +316,12 @@ function computeAgentActivity(batches: BatchStatus[], generatedAt: string, senti
       status: statusFor(etchLast, now),
       lastRanAt: etchLast,
       metric: { label: "Images generated", value: imagesGenerated },
+    },
+    {
+      agent: "writer",
+      status: statusFor(writerLast, now),
+      lastRanAt: writerLast,
+      metric: { label: "Words written", value: wordsWritten },
     },
     {
       agent: "bindery",
@@ -288,6 +368,15 @@ function computeActivityFeed(batches: BatchStatus[]): ActivityEvent[] {
   const events: ActivityEvent[] = [];
 
   for (const b of batches) {
+    if (b.opportunityScanner.done && b.opportunityScanner.detail) {
+      events.push({
+        at: b.opportunityScanner.detail.completedAt,
+        batchId: b.batchId,
+        theme: b.theme,
+        actor: "opportunityScanner",
+        summary: `Opportunity Scanner selected "${b.opportunityScanner.detail.category}" (${b.opportunityScanner.detail.contentType}) for this batch`,
+      });
+    }
     if (b.scout.done && b.scout.detail) {
       events.push({
         at: b.scout.detail.completedAt,
@@ -304,6 +393,15 @@ function computeActivityFeed(batches: BatchStatus[]): ActivityEvent[] {
         theme: b.theme,
         actor: "loom",
         summary: `Loom wrote ${b.loom.detail.promptCount} image prompts for "${b.theme}"`,
+      });
+    }
+    if (b.writer.done && b.writer.detail) {
+      events.push({
+        at: b.writer.detail.completedAt,
+        batchId: b.batchId,
+        theme: b.theme,
+        actor: "writer",
+        summary: `Writer drafted a ${b.writer.detail.wordCount}-word manuscript (${b.writer.detail.sectionCount} sections) for "${b.theme}"`,
       });
     }
     if (b.images.done && b.images.detail) {
@@ -391,6 +489,8 @@ export function runLedger(options: LedgerRunOptions = {}): LedgerStatusFile {
   const batchesDir = options.batchesDir ?? "batches";
   const outputPath = options.outputPath ?? join("dashboard", "public", "status.json");
   const sentinelRunLogPath = options.sentinelRunLogPath ?? join("agents", "sentinel", "run-log.json");
+  const opportunityScannerRunLogPath =
+    options.opportunityScannerRunLogPath ?? join("agents", "opportunity-scanner", "run-log.json");
 
   const byStage = Object.fromEntries(BATCH_STAGES.map((s) => [s, 0])) as Record<BatchStage, number>;
   const batches: BatchStatus[] = [];
@@ -431,7 +531,12 @@ export function runLedger(options: LedgerRunOptions = {}): LedgerStatusFile {
     },
     batches,
     invalidBatches,
-    agents: computeAgentActivity(batches, generatedAt, readSentinelRunLog(sentinelRunLogPath)),
+    agents: computeAgentActivity(
+      batches,
+      generatedAt,
+      readSentinelRunLog(sentinelRunLogPath),
+      readOpportunityScannerRunLog(opportunityScannerRunLogPath)
+    ),
     activity: computeActivityFeed(batches),
     fleet: computeFleetSummary(batches),
   };

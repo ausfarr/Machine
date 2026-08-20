@@ -5,6 +5,8 @@ import sharp from "sharp";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ClaudeClient, ThemeAnalysis, ThemeSelection } from "../agents/scout/claudeClient.ts";
 import type { ImageGenClient } from "../agents/etch/geminiClient.ts";
+import { fakeOpportunityScannerClient } from "../agents/opportunity-scanner/testFixtures.ts";
+import { fakeWriterClient } from "../agents/writer/testFixtures.ts";
 import { readQueue, runPipelineFromQueue, writeQueue } from "./queue.ts";
 
 let tempDir: string | undefined;
@@ -45,6 +47,14 @@ function fakeImageClient(): ImageGenClient {
   };
 }
 
+/** Scopes Opportunity Scanner's report/run-log writes to this test's tempDir, so a test run never leaves files in the real repo's agents/opportunity-scanner/ directory. */
+function opportunityScannerPaths(dir: string) {
+  return {
+    opportunityScannerReportsDir: join(dir, "opportunity-scanner-reports"),
+    opportunityScannerRunLogPath: join(dir, "opportunity-scanner-run-log.json"),
+  };
+}
+
 describe("readQueue / writeQueue", () => {
   it("returns an empty array when the queue file doesn't exist", () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
@@ -67,7 +77,7 @@ describe("readQueue / writeQueue", () => {
 });
 
 describe("runPipelineFromQueue", () => {
-  it("runs the whole pipeline on the theme Claude selects, even when it isn't first in the queue", async () => {
+  it("runs the whole illustrated pipeline on the theme Claude selects, even when it isn't first in the queue", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
     const queuePath = join(tempDir, "theme-queue.json");
     const batchesDir = join(tempDir, "batches");
@@ -78,10 +88,14 @@ describe("runPipelineFromQueue", () => {
       batchesDir,
       claudeClient: fakeClaudeClient("Cozy Cabins"),
       imageClient: fakeImageClient(),
+      opportunityScannerClient: fakeOpportunityScannerClient(),
+      ...opportunityScannerPaths(tempDir),
       promptCount: 20,
     });
 
     expect(result.theme).toBe("Cozy Cabins");
+    expect(result.contentType).toBe("illustrated");
+    expect(result.category).toBe("Seasonal Coloring Books");
     expect(result.stage).toBe("listed");
     expect(result.remainingQueueLength).toBe(1);
 
@@ -92,6 +106,46 @@ describe("runPipelineFromQueue", () => {
     expect(manifest.stage).toBe("listed");
     expect(manifest.images.source).toBe("etch");
     expect(manifest.scout.selectionRationale).toBe(result.selectionRationale);
+    expect(manifest.opportunityScanner.category).toBe("Seasonal Coloring Books");
+  }, 60000);
+
+  it("runs the whole text-only pipeline through Writer + Bindery, stopping at stage assembled", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
+    const queuePath = join(tempDir, "theme-queue.json");
+    const batchesDir = join(tempDir, "batches");
+
+    const result = await runPipelineFromQueue({
+      queuePath,
+      batchesDir,
+      claudeClient: fakeClaudeClient("Autumn Reflections", ["Autumn Reflections"]),
+      imageClient: fakeImageClient(),
+      opportunityScannerClient: fakeOpportunityScannerClient({
+        candidates: [
+          {
+            category: "Poetry Collections",
+            contentType: "text",
+            score: 80,
+            rationale: "Fake rationale.",
+            groundedInLiveSearch: true,
+          },
+        ],
+        selectedCategory: "Poetry Collections",
+      }),
+      ...opportunityScannerPaths(tempDir),
+      writerClient: fakeWriterClient(),
+    });
+
+    expect(result.contentType).toBe("text");
+    expect(result.category).toBe("Poetry Collections");
+    expect(result.stage).toBe("assembled");
+    expect(result.writer?.excerpt).toBeTruthy();
+    expect(result.writer?.sectionCount).toBeGreaterThan(0);
+
+    const manifest = JSON.parse(readFileSync(join(batchesDir, result.batchId, "manifest.json"), "utf-8"));
+    expect(manifest.stage).toBe("assembled");
+    expect(manifest.writer).toBeDefined();
+    expect(manifest.loom).toBeUndefined();
+    expect(manifest.crier).toBeUndefined();
   }, 60000);
 
   it("still runs the pipeline when theme-queue.json is empty, using Scout's own generated candidates", async () => {
@@ -105,6 +159,8 @@ describe("runPipelineFromQueue", () => {
       batchesDir,
       claudeClient: fakeClaudeClient("Woodland Creatures", ["Woodland Creatures", "Cozy Cabins"]),
       imageClient: fakeImageClient(),
+      opportunityScannerClient: fakeOpportunityScannerClient(),
+      ...opportunityScannerPaths(tempDir),
       promptCount: 20,
     });
 
@@ -126,6 +182,8 @@ describe("runPipelineFromQueue", () => {
       batchesDir,
       claudeClient: fakeClaudeClient("Cozy Cabins", ["Cozy Cabins"]),
       imageClient: fakeImageClient(),
+      opportunityScannerClient: fakeOpportunityScannerClient(),
+      ...opportunityScannerPaths(tempDir),
       promptCount: 20,
     });
 
@@ -145,11 +203,13 @@ describe("runPipelineFromQueue", () => {
         batchesDir,
         claudeClient: fakeClaudeClient("unused", []),
         imageClient: fakeImageClient(),
+        opportunityScannerClient: fakeOpportunityScannerClient(),
+        ...opportunityScannerPaths(tempDir),
       })
     ).rejects.toThrow(/No candidate themes available/);
   });
 
-  it("asks Scout to avoid themes already produced by an existing batch", async () => {
+  it("asks Scout to avoid themes already produced by an existing batch, scoped to Opportunity Scanner's category", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "queue-test-"));
     const queuePath = join(tempDir, "theme-queue.json");
     const batchesDir = join(tempDir, "batches");
@@ -167,9 +227,17 @@ describe("runPipelineFromQueue", () => {
       generateCandidateThemes,
     };
 
-    await runPipelineFromQueue({ queuePath, batchesDir, claudeClient: client, imageClient: fakeImageClient(), promptCount: 20 });
+    await runPipelineFromQueue({
+      queuePath,
+      batchesDir,
+      claudeClient: client,
+      imageClient: fakeImageClient(),
+      opportunityScannerClient: fakeOpportunityScannerClient(),
+      ...opportunityScannerPaths(tempDir),
+      promptCount: 20,
+    });
 
-    expect(generateCandidateThemes).toHaveBeenCalledWith(expect.any(Number), ["Cats"]);
+    expect(generateCandidateThemes).toHaveBeenCalledWith(expect.any(Number), ["Cats"], "Seasonal Coloring Books");
   }, 60000);
 
   it("leaves the theme out of the queue even if a downstream step fails, instead of retrying it forever", async () => {
@@ -190,6 +258,8 @@ describe("runPipelineFromQueue", () => {
         batchesDir,
         claudeClient: fakeClaudeClient("Cozy Cabins"),
         imageClient: failingImageClient,
+        opportunityScannerClient: fakeOpportunityScannerClient(),
+        ...opportunityScannerPaths(tempDir),
       })
     ).rejects.toThrow(/simulated Gemini outage/);
 

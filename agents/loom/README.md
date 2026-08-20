@@ -28,13 +28,28 @@ Writes `prompts.json`, `front-back-matter.md`, and updates
 
 Loom has no subject-extraction or image-generation API, so it crosses the
 approved theme with a fixed library of 30 composition/framing templates
-(close-up, wide shot, low angle, decorative border, cross-section, etc.)
-rather than inventing "real" subject research. A shared `styleGuidance`
-string (black-and-white line art, bold outlines, no color, 8.5x11in KDP
-page) is included once so every prompt is interpreted consistently.
+rather than inventing "real" subject research. Prompt style is
+category-aware: `templates.ts` defines one self-contained
+`IllustrationStyleTemplates` config per `IllustrationStyle` (currently
+`coloring-book` — black-and-white line art, bold outlines, no color — and
+`picture-book` — full-color, warm, narrative children's-book
+illustration), each with its own composition templates, cover-art style
+guidance, and front/back matter copy. Loom picks the style from
+`manifest.opportunityScanner.illustrationStyle` (set by Opportunity
+Scanner); a batch created by running `npm run scout` directly on a theme
+(no Opportunity Scanner data) falls back to `coloring-book`, preserving
+v1 behavior for manual testing. A shared `styleGuidance` string for the
+chosen style is included once in `prompts.json` so every prompt is
+interpreted consistently — Etch reads this generically and never branches
+on which style it is.
+
+The cover prompt (`cover.prompt` in `prompts.json`) bakes in the same
+title Crier independently builds for `listing.json` — both call
+`buildTitle()` from `agents/crier/templates.ts` with the same
+`illustrationStyle`, so the two can never diverge.
 
 ## Files
 
-- `templates.ts` — style guidance, composition templates, front/back matter draft generators
+- `templates.ts` — `ILLUSTRATION_STYLES` (per-style guidance, composition templates, cover-prompt builder, front/back matter draft generators)
 - `index.ts` — `runLoom()`, the agent's entry point
 - `cli.ts` — CLI wrapper (`npm run loom`)

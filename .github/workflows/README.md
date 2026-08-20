@@ -7,19 +7,40 @@ happens entirely outside this repo, by hand.
 ## `pipeline.yml` — weekly, or manual
 
 Runs weekly (Monday 13:00 UTC) and on `workflow_dispatch`. Runs the whole
-pipeline unattended, end to end, on one theme: Scout proposes fresh
-candidate themes itself via the Anthropic API (avoiding themes already
-produced), blends them with anything queued by hand in `theme-queue.json`
-at the repo root, picks one, and researches it. Loom then writes prompts,
-Etch generates the images via the Gemini API, and Bindery + Crier
-assemble the interior PDF and listing. `theme-queue.json` is optional —
-it's a way to make sure a specific idea gets considered, not a required
-gate; this workflow produces a batch every time it runs, queue or no
-queue. Opens one PR with the whole batch for a human to review before
-merging.
+pipeline unattended, end to end: Opportunity Scanner first picks this
+week's KDP category (Claude + web_search), logging every candidate
+considered — including the ones passed over — in
+`agents/opportunity-scanner/reports/`. Scout then proposes fresh candidate
+themes itself via the Anthropic API within that category (avoiding themes
+already produced), blends them with anything queued by hand in
+`theme-queue.json` at the repo root, picks one, and researches it.
+`theme-queue.json` is optional — it's a way to make sure a specific idea
+gets considered, not a required gate; this workflow produces a batch every
+time it runs, queue or no queue.
+
+From there the pipeline branches on the category's content type:
+
+- **Illustrated** — Loom writes prompts, Etch generates the images via the
+  Gemini API, and Bindery + Crier assemble the interior PDF and listing.
+  The PR is ready for a human to proof `interior.pdf`, `cover-art.png`,
+  and `listing.json`.
+- **Text-only** — Writer generates the full manuscript via the Anthropic
+  API, and Bindery typesets it into a print-ready interior PDF. Crier
+  doesn't support text-only categories yet (see
+  `agents/crier/README.md`'s "Known v2 gap"), so the batch stops at stage
+  `assembled` — no `listing.json` yet. The PR body surfaces a
+  representative excerpt from the manuscript and flags that it warrants a
+  closer read than an illustrated batch, since there's no human-curated
+  illustration step in between (see CLAUDE.md's Writer section).
+
+Opens one PR with the whole batch for a human to review before merging,
+either way.
 
 Requires the `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` repo secrets — see
 CLAUDE.md's "Authorized external APIs" section for what each is scoped to.
+A text-only run never actually calls the Gemini API (there's nothing for
+Etch to do), but the secret is passed unconditionally either way — it's
+simply unused on that path.
 
 ## `bindery-crier.yml` — on new/changed images
 

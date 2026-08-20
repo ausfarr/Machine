@@ -51,6 +51,13 @@ export function runCrier(batchId: string, options: CrierRunOptions = {}): CrierR
     );
   }
 
+  const contentType = existingManifest.opportunityScanner?.contentType;
+  if (contentType === "text") {
+    throw new Error(
+      `Batch "${batchId}" is a text-only category, but Crier's keyword/category/description generation is still coloring-book-only (see agents/crier/README.md's "Known v2 gap") — refusing to write a listing.json that would misdescribe this batch (e.g. calling a poetry or fiction manuscript a "coloring book"). Generalize Crier for text categories before running it on this batch.`
+    );
+  }
+
   const theme = existingManifest.theme;
   const pageCount = existingManifest.bindery?.pageCount;
   const suggestedAngle = existingManifest.scout?.suggestedAngle;
@@ -58,9 +65,11 @@ export function runCrier(batchId: string, options: CrierRunOptions = {}): CrierR
     throw new Error(`Batch "${batchId}" manifest is missing bindery.pageCount or scout.suggestedAngle.`);
   }
 
+  const illustrationStyle = existingManifest.opportunityScanner?.illustrationStyle;
+
   const generatedAt = new Date().toISOString();
-  const title = buildTitle(theme);
-  const subtitle = buildSubtitle(theme, pageCount);
+  const title = buildTitle(theme, illustrationStyle);
+  const subtitle = buildSubtitle(theme, pageCount, illustrationStyle);
   const keywords = buildKeywords(theme);
   const description = buildDescription(theme, pageCount, suggestedAngle);
 

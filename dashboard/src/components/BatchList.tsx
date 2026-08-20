@@ -4,6 +4,7 @@ import { formatDate } from "../lib/format";
 export const STAGE_LABELS: Record<BatchStage, string> = {
   researched: "Researched",
   prompted: "Prompted",
+  manuscripted: "Manuscripted",
   imaged: "Imaged",
   assembled: "Assembled",
   listed: "Listed",
@@ -13,24 +14,55 @@ export const STAGE_LABELS: Record<BatchStage, string> = {
 export const STAGE_BADGE_CLASSES: Record<BatchStage, string> = {
   researched: "border-slate-600/50 bg-slate-700/40 text-slate-200",
   prompted: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+  manuscripted: "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300",
   imaged: "border-indigo-500/40 bg-indigo-500/10 text-indigo-300",
   assembled: "border-violet-500/40 bg-violet-500/10 text-violet-300",
   listed: "border-amber-500/40 bg-amber-500/10 text-amber-300",
   published: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
 };
 
+/**
+ * A batch is either illustrated (loom/images/coverArt) or text-only
+ * (writer) — never both — so this list includes every possible step
+ * across both paths; a given batch's card just shows the ones that
+ * apply to it as done, the rest as not-yet (see PIPELINE_STEPS filtering
+ * in BatchCard below).
+ */
 const PIPELINE_STEPS: {
-  key: keyof Pick<BatchStatus, "scout" | "loom" | "images" | "coverArt" | "bindery" | "crier" | "published">;
+  key: keyof Pick<BatchStatus, "scout" | "loom" | "images" | "coverArt" | "writer" | "bindery" | "crier" | "published">;
   label: string;
 }[] = [
   { key: "scout", label: "Scout" },
   { key: "loom", label: "Loom" },
   { key: "images", label: "Images" },
   { key: "coverArt", label: "Cover" },
+  { key: "writer", label: "Writer" },
   { key: "bindery", label: "Bindery" },
   { key: "crier", label: "Crier" },
   { key: "published", label: "Published" },
 ];
+
+const ILLUSTRATED_ONLY_STEPS = new Set<(typeof PIPELINE_STEPS)[number]["key"]>(["loom", "images", "coverArt"]);
+const TEXT_ONLY_STEPS = new Set<(typeof PIPELINE_STEPS)[number]["key"]>(["writer"]);
+
+/**
+ * Hides the steps that don't apply to this batch's content type, so a
+ * text-only batch doesn't show permanently-off Loom/Images/Cover dots (and
+ * vice versa) — cosmetic only, never affects the real `done` data itself.
+ * Falls back to showing every step when contentType isn't known yet (a
+ * batch predating Opportunity Scanner, or one whose opportunityScanner
+ * step hasn't completed), so nothing appears to vanish mid-run.
+ */
+function visiblePipelineSteps(batch: BatchStatus) {
+  const contentType = batch.opportunityScanner.detail?.contentType;
+  if (contentType === "illustrated") {
+    return PIPELINE_STEPS.filter((s) => !TEXT_ONLY_STEPS.has(s.key));
+  }
+  if (contentType === "text") {
+    return PIPELINE_STEPS.filter((s) => !ILLUSTRATED_ONLY_STEPS.has(s.key));
+  }
+  return PIPELINE_STEPS;
+}
 
 function BatchCard({ batch, onSelect }: { batch: BatchStatus; onSelect: () => void }) {
   return (
@@ -50,7 +82,7 @@ function BatchCard({ batch, onSelect }: { batch: BatchStatus; onSelect: () => vo
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
-        {PIPELINE_STEPS.map(({ key, label }) => (
+        {visiblePipelineSteps(batch).map(({ key, label }) => (
           <div key={key} className="flex items-center gap-1.5 text-xs">
             <span className={`h-1.5 w-1.5 rounded-full ${batch[key].done ? "bg-emerald-400" : "bg-slate-700"}`} aria-hidden="true" />
             <span className={batch[key].done ? "text-slate-300" : "text-slate-600"}>{label}</span>
