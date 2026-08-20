@@ -1,8 +1,16 @@
 /** Mirrors agents/ledger/index.ts's LedgerStatusFile — keep in sync. */
 
-export type BatchStage = "researched" | "prompted" | "imaged" | "assembled" | "listed" | "published";
+export type BatchStage = "researched" | "prompted" | "manuscripted" | "imaged" | "assembled" | "listed" | "published";
 
-export const BATCH_STAGES: BatchStage[] = ["researched", "prompted", "imaged", "assembled", "listed", "published"];
+export const BATCH_STAGES: BatchStage[] = [
+  "researched",
+  "prompted",
+  "manuscripted",
+  "imaged",
+  "assembled",
+  "listed",
+  "published",
+];
 
 export interface StageStatus<T = Record<string, unknown>> {
   done: boolean;
@@ -18,6 +26,7 @@ export interface BatchStatus {
   opportunityScanner: StageStatus<{ completedAt: string; category: string; contentType: "illustrated" | "text" }>;
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
+  writer: StageStatus<{ completedAt: string; sectionCount: number; wordCount: number; excerpt: string }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
   coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
@@ -42,6 +51,7 @@ export const AGENT_KEYS = [
   "scout",
   "loom",
   "etch",
+  "writer",
   "bindery",
   "crier",
   "ledger",

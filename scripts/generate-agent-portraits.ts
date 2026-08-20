@@ -42,6 +42,11 @@ const VISUAL_MOTIFS: Record<string, string> = {
     "expression, leaning slightly forward as if mid-work. A single glowing " +
     "line traces fine linework across his cheek and jaw, like a stylus " +
     "etching itself into being.",
+  writer:
+    "A contemplative woman with a distant, inward gaze, mid-thought, as " +
+    "if listening for the next sentence. Faint glowing lines of handwritten " +
+    "script trail from her temple like unspooling thread, gathering into " +
+    "words at her collar.",
   bindery:
     "A composed woman with her hair pulled back and a calm, orderly " +
     "expression. Faint glowing lines like stacked bound pages trace across " +

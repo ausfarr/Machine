@@ -30,6 +30,7 @@ export interface BatchStatus {
   opportunityScanner: StageStatus<{ completedAt: string; category: string; contentType: "illustrated" | "text" }>;
   scout: StageStatus<{ completedAt: string; competitionLevel: string }>;
   loom: StageStatus<{ completedAt: string; promptCount: number }>;
+  writer: StageStatus<{ completedAt: string; sectionCount: number; wordCount: number; excerpt: string }>;
   images: StageStatus<{ addedAt: string; count: number; source: "etch" | "human" }>;
   coverArt: StageStatus<{ addedAt: string; source: "etch" | "human" }>;
   bindery: StageStatus<{ completedAt: string; pageCount: number }>;
@@ -60,6 +61,7 @@ export const AGENT_KEYS = [
   "scout",
   "loom",
   "etch",
+  "writer",
   "bindery",
   "crier",
   "ledger",
@@ -152,6 +154,17 @@ function toBatchStatus(manifest: BatchManifest): BatchStatus {
       : { done: false },
     loom: manifest.loom
       ? { done: true, detail: { completedAt: manifest.loom.completedAt, promptCount: manifest.loom.promptCount } }
+      : { done: false },
+    writer: manifest.writer
+      ? {
+          done: true,
+          detail: {
+            completedAt: manifest.writer.completedAt,
+            sectionCount: manifest.writer.sectionCount,
+            wordCount: manifest.writer.wordCount,
+            excerpt: manifest.writer.excerpt,
+          },
+        }
       : { done: false },
     images: manifest.images
       ? { done: true, detail: { addedAt: manifest.images.addedAt, count: manifest.images.count, source: manifest.images.source } }
@@ -263,6 +276,10 @@ function computeAgentActivity(
   const etchLast = latestOf(etchRuns.map((b) => b.images.detail?.addedAt));
   const imagesGenerated = etchRuns.reduce((sum, b) => sum + (b.images.detail?.count ?? 0), 0);
 
+  const writerRuns = batches.filter((b) => b.writer.done);
+  const writerLast = latestOf(writerRuns.map((b) => b.writer.detail?.completedAt));
+  const wordsWritten = writerRuns.reduce((sum, b) => sum + (b.writer.detail?.wordCount ?? 0), 0);
+
   const binderyRuns = batches.filter((b) => b.bindery.done);
   const binderyLast = latestOf(binderyRuns.map((b) => b.bindery.detail?.completedAt));
 
@@ -299,6 +316,12 @@ function computeAgentActivity(
       status: statusFor(etchLast, now),
       lastRanAt: etchLast,
       metric: { label: "Images generated", value: imagesGenerated },
+    },
+    {
+      agent: "writer",
+      status: statusFor(writerLast, now),
+      lastRanAt: writerLast,
+      metric: { label: "Words written", value: wordsWritten },
     },
     {
       agent: "bindery",
@@ -370,6 +393,15 @@ function computeActivityFeed(batches: BatchStatus[]): ActivityEvent[] {
         theme: b.theme,
         actor: "loom",
         summary: `Loom wrote ${b.loom.detail.promptCount} image prompts for "${b.theme}"`,
+      });
+    }
+    if (b.writer.done && b.writer.detail) {
+      events.push({
+        at: b.writer.detail.completedAt,
+        batchId: b.batchId,
+        theme: b.theme,
+        actor: "writer",
+        summary: `Writer drafted a ${b.writer.detail.wordCount}-word manuscript (${b.writer.detail.sectionCount} sections) for "${b.theme}"`,
       });
     }
     if (b.images.done && b.images.detail) {

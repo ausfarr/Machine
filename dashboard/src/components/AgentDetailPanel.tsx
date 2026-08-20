@@ -14,6 +14,8 @@ function agentTouchedBatch(agent: AgentKey, batch: BatchStatus): boolean {
       return batch.loom.done;
     case "etch":
       return batch.images.done && batch.images.detail?.source === "etch";
+    case "writer":
+      return batch.writer.done;
     case "bindery":
       return batch.bindery.done;
     case "crier":

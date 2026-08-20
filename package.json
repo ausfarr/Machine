@@ -12,6 +12,7 @@
     "scout": "tsx agents/scout/cli.ts",
     "loom": "tsx agents/loom/cli.ts",
     "etch": "tsx agents/etch/cli.ts",
+    "writer": "tsx agents/writer/cli.ts",
     "bindery": "tsx agents/bindery/cli.ts",
     "crier": "tsx agents/crier/cli.ts",
     "ledger": "tsx agents/ledger/cli.ts",

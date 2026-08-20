@@ -57,6 +57,14 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     accent: "#2dd4bf",
   },
   {
+    agent: "writer",
+    personaName: "QUILL",
+    tagline: "Writes the whole book when there's no picture to draw.",
+    subtitle: "Writer · full manuscript generation",
+    portrait: "agents/writer.png",
+    accent: "#e879f9",
+  },
+  {
     agent: "bindery",
     personaName: "FOLIO",
     tagline: "Binds the pages into something sellable.",

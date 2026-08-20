@@ -7,6 +7,7 @@ import { z } from "zod";
 export const BATCH_STAGES = [
   "researched",
   "prompted",
+  "manuscripted",
   "imaged",
   "assembled",
   "listed",
@@ -66,6 +67,25 @@ export const LoomResultSchema = z.object({
   completedAt: isoTimestamp,
 });
 export type LoomResult = z.infer<typeof LoomResultSchema>;
+
+/**
+ * Writer's output: a full manuscript for a text-only category (see
+ * CLAUDE.md's Writer section). `excerpt` and `proofreadRecommended` exist
+ * specifically to be surfaced inline in the pull request — not a separate
+ * approval gate, just more visible than an illustrated batch's PR, since
+ * this is fully AI-generated prose rather than curated illustrations.
+ */
+export const WriterResultSchema = z.object({
+  manuscriptMdPath: z.string(),
+  manuscriptJsonPath: z.string(),
+  sectionCount: z.number().int().positive(),
+  wordCount: z.number().int().positive(),
+  excerpt: z.string(),
+  aiGeneratedDisclosure: z.literal(true),
+  proofreadRecommended: z.literal(true),
+  completedAt: isoTimestamp,
+});
+export type WriterResult = z.infer<typeof WriterResultSchema>;
 
 /** Set once final images exist in batches/{id}/images/, whether Etch generated them or a human supplied/replaced them. */
 export const ImagesResultSchema = z.object({
@@ -148,6 +168,7 @@ export const BatchManifestSchema = z.object({
   opportunityScanner: OpportunityScannerResultSchema.optional(),
   scout: ScoutResultSchema.optional(),
   loom: LoomResultSchema.optional(),
+  writer: WriterResultSchema.optional(),
   images: ImagesResultSchema.optional(),
   coverArt: CoverArtResultSchema.optional(),
   bindery: BinderyResultSchema.optional(),
@@ -161,10 +182,19 @@ export type BatchManifest = z.infer<typeof BatchManifestSchema>;
  * e.g. stage "assembled" requires scout, loom, images, and bindery to all
  * be present. Catches a manifest that claims a stage without the work
  * behind it, per the "no fabricated data" guardrail.
+ *
+ * "manuscripted" is the text-only sibling of "prompted"/"imaged" (Writer's
+ * output, not Loom/Etch's) — a text batch goes researched -> manuscripted
+ * and then waits there for Bindery's manuscript-typesetting mode, same as
+ * an illustrated batch waits at "imaged" for image-grid Bindery. Until
+ * that mode exists, "assembled"/"listed"/"published" below still only
+ * recognize the illustrated (loom+images) path — see CLAUDE.md's Bindery
+ * section and its "Build order" v2 phase.
  */
 const STAGE_REQUIREMENTS: Record<BatchStage, (keyof BatchManifest)[]> = {
   researched: ["scout"],
   prompted: ["scout", "loom"],
+  manuscripted: ["scout", "writer"],
   imaged: ["scout", "loom", "images"],
   assembled: ["scout", "loom", "images", "bindery"],
   listed: ["scout", "loom", "images", "bindery", "crier"],
