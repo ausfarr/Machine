@@ -186,24 +186,42 @@ export type BatchManifest = z.infer<typeof BatchManifestSchema>;
  * "manuscripted" is the text-only sibling of "prompted"/"imaged" (Writer's
  * output, not Loom/Etch's) — a text batch goes researched -> manuscripted
  * and then waits there for Bindery's manuscript-typesetting mode, same as
- * an illustrated batch waits at "imaged" for image-grid Bindery. Until
- * that mode exists, "assembled"/"listed"/"published" below still only
- * recognize the illustrated (loom+images) path — see CLAUDE.md's Bindery
- * section and its "Build order" v2 phase.
+ * an illustrated batch waits at "imaged" for image-grid Bindery.
+ *
+ * "assembled"/"listed"/"published" branch on contentType, since a
+ * text-only batch never has loom/images (Writer produced its content
+ * instead) and an illustrated batch never has writer — requiring both
+ * unconditionally would make every real batch of one type "invalid" by
+ * the other type's rules. A batch with no opportunityScanner data at all
+ * (created via `npm run scout` directly, predating v2) is treated as
+ * illustrated, matching Loom's own fallback default.
  */
-const STAGE_REQUIREMENTS: Record<BatchStage, (keyof BatchManifest)[]> = {
-  researched: ["scout"],
-  prompted: ["scout", "loom"],
-  manuscripted: ["scout", "writer"],
-  imaged: ["scout", "loom", "images"],
-  assembled: ["scout", "loom", "images", "bindery"],
-  listed: ["scout", "loom", "images", "bindery", "crier"],
-  published: ["scout", "loom", "images", "bindery", "crier", "published"],
-};
+const ILLUSTRATED_ASSEMBLED_FIELDS: (keyof BatchManifest)[] = ["scout", "loom", "images", "bindery"];
+const TEXT_ASSEMBLED_FIELDS: (keyof BatchManifest)[] = ["scout", "writer", "bindery"];
+
+function requiredFieldsForStage(manifest: BatchManifest): (keyof BatchManifest)[] {
+  const isText = manifest.opportunityScanner?.contentType === "text";
+  switch (manifest.stage) {
+    case "researched":
+      return ["scout"];
+    case "prompted":
+      return ["scout", "loom"];
+    case "manuscripted":
+      return ["scout", "writer"];
+    case "imaged":
+      return ["scout", "loom", "images"];
+    case "assembled":
+      return isText ? TEXT_ASSEMBLED_FIELDS : ILLUSTRATED_ASSEMBLED_FIELDS;
+    case "listed":
+      return [...(isText ? TEXT_ASSEMBLED_FIELDS : ILLUSTRATED_ASSEMBLED_FIELDS), "crier"];
+    case "published":
+      return [...(isText ? TEXT_ASSEMBLED_FIELDS : ILLUSTRATED_ASSEMBLED_FIELDS), "crier", "published"];
+  }
+}
 
 export function validateManifest(data: unknown): BatchManifest {
   const manifest = BatchManifestSchema.parse(data);
-  const required = STAGE_REQUIREMENTS[manifest.stage];
+  const required = requiredFieldsForStage(manifest);
   const missing = required.filter((field) => manifest[field] === undefined);
   if (missing.length > 0) {
     throw new Error(

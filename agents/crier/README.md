@@ -42,12 +42,23 @@ So:
 - **Description** is templated from the batch's own theme, page count, and
   Scout's suggested angle — not invented market copy.
 
-**Known v2 gap:** keywords, categories, and the description body are
-still coloring-book-only — v2's multi-category expansion generalized
-title/subtitle first because Loom's cover art depends on them staying in
-sync, but a picture-book (or later, a text-only Writer) batch will still
-get a coloring-book-flavored `listing.json` for these fields until Crier
-gets the same per-category treatment.
+**Known v2 gap — illustrated batches:** keywords, categories, and the
+description body are still coloring-book-only — v2's multi-category
+expansion generalized title/subtitle first because Loom's cover art
+depends on them staying in sync, but a picture-book batch will still get
+a coloring-book-flavored `listing.json` for these fields until Crier gets
+the same per-category treatment.
+
+**Text-only (Writer-sourced) batches — refused, not mis-generated:** now
+that Bindery's manuscript-typesetting mode can move a text-only batch to
+stage `assembled`, `runCrier` throws immediately for any batch with
+`opportunityScanner.contentType === "text"`, rather than writing a
+`listing.json` that would call a poetry or fiction manuscript a "coloring
+book." This is a deliberate refusal, not a placeholder pass-through — per
+CLAUDE.md's "if a step's output looks wrong, fail with a clear error
+rather than proceeding with bad data" guardrail. A text batch stays at
+stage `assembled` (interior PDF real and complete) until Crier is
+generalized for text categories.
 
 ## Files
 

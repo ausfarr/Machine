@@ -7,6 +7,8 @@ import { validateManifest } from "../../schemas/manifest.ts";
 import { runLoom } from "../loom/index.ts";
 import { runScout } from "../scout/index.ts";
 import { fakeClaudeClient } from "../scout/testFixtures.ts";
+import { runWriter } from "../writer/index.ts";
+import { fakeWriterClient } from "../writer/testFixtures.ts";
 import { runBindery } from "./index.ts";
 import { writeValidTestImages } from "./testFixtures.ts";
 
@@ -48,10 +50,12 @@ describe("runBindery", () => {
     expect(page.getHeight()).toBeCloseTo(792, 0);
   }, 60000);
 
-  it("refuses to run on a batch that isn't at stage prompted or imaged", async () => {
+  it("refuses to run on a batch that isn't at stage prompted, imaged, or manuscripted", async () => {
     tempDir = mkdtempSync(join(tmpdir(), "bindery-e2e-"));
     const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
-    await expect(runBindery(scouted.batchId, { batchesDir: tempDir })).rejects.toThrow(/requires stage "prompted" or "imaged"/);
+    await expect(runBindery(scouted.batchId, { batchesDir: tempDir })).rejects.toThrow(
+      /requires stage "prompted", "imaged", or "manuscripted"/
+    );
   });
 
   it("fails loudly instead of assembling when images are missing", async () => {
@@ -84,4 +88,56 @@ describe("runBindery", () => {
     expect(result.manifest.stage).toBe("assembled");
     expect(result.manifest.images?.source).toBe("etch");
   }, 60000);
+
+  describe("manuscript mode", () => {
+    async function seedManuscriptedBatch(batchesDir: string) {
+      const scouted = await runScout("Autumn Reflections", { batchesDir, claudeClient: fakeClaudeClient() });
+      const manifestPath = join(scouted.batchDir, "manifest.json");
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+      manifest.opportunityScanner = {
+        category: "Poetry Collections",
+        contentType: "text",
+        selectionRationale: "Test fixture.",
+        reportJsonPath: "fake.json",
+        reportMdPath: "fake.md",
+        completedAt: manifest.createdAt,
+      };
+      writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+      await runWriter(scouted.batchId, { batchesDir, client: fakeWriterClient() });
+      return scouted.batchId;
+    }
+
+    it("typesets a manuscript into a real interior PDF and moves the batch to stage assembled", async () => {
+      tempDir = mkdtempSync(join(tmpdir(), "bindery-manuscript-e2e-"));
+      const batchId = await seedManuscriptedBatch(tempDir);
+
+      const result = await runBindery(batchId, { batchesDir: tempDir });
+
+      const manifestRaw = JSON.parse(readFileSync(join(result.batchDir, "manifest.json"), "utf-8"));
+      const manifest = validateManifest(manifestRaw);
+      expect(manifest.stage).toBe("assembled");
+      expect(manifest.bindery?.trimSize).toBe("8.5x11in");
+      expect(manifest.bindery?.pageCount).toBeGreaterThan(0);
+      // Text-only batches have no loom/images at all — validateManifest must accept that.
+      expect(manifest.loom).toBeUndefined();
+      expect(manifest.images).toBeUndefined();
+
+      const pdfBytes = readFileSync(result.interiorPdfPath);
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      expect(pdfDoc.getPageCount()).toBe(manifest.bindery?.pageCount);
+    });
+
+    it("fails loudly if writer.manuscriptJsonPath is missing or unreadable", async () => {
+      tempDir = mkdtempSync(join(tmpdir(), "bindery-manuscript-e2e-"));
+      const batchId = await seedManuscriptedBatch(tempDir);
+
+      const manifestPath = join(tempDir, batchId, "manifest.json");
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+      manifest.writer.manuscriptJsonPath = join(tempDir, batchId, "does-not-exist.json");
+      writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+      await expect(runBindery(batchId, { batchesDir: tempDir })).rejects.toThrow(/no valid writer.manuscriptJsonPath/);
+    });
+  });
 });
