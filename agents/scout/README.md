@@ -10,14 +10,17 @@ new `/batches/{batch-id}/` folder.
 npm run scout -- "a rough theme or category"
 ```
 
-Runs Scout directly against a single theme (no generation/selection step
-— useful for testing a specific idea by hand). Writes `research.json`,
-`research.md`, and `manifest.json` (stage: `researched`) into a new batch
-folder.
+Runs Scout directly against a single theme (no generation/selection step,
+and no Opportunity Scanner category context — useful for testing a
+specific idea by hand). Writes `research.json`, `research.md`, and
+`manifest.json` (stage: `researched`, no `opportunityScanner` block) into
+a new batch folder; research prompts fall back to `DEFAULT_CATEGORY`
+("coloring book") framing, preserving v1 behavior for this manual path.
 
-To let Scout generate and choose from its own candidates (optionally
-blended with `theme-queue.json`), use the full pipeline instead:
-`npm run process-queue` (see the root `README.md`).
+To let Scout generate and choose from its own candidates within the
+category Opportunity Scanner selected (optionally blended with
+`theme-queue.json`), use the full pipeline instead: `npm run
+process-queue` (see the root `README.md`).
 
 ## Requires `ANTHROPIC_API_KEY`
 
@@ -36,14 +39,31 @@ three things:
   differentiating angle, and proposes keyword variants for the selected
   theme.
 
+All three take an optional `category` parameter (defaulting to
+`DEFAULT_CATEGORY`, "coloring book") so the pipeline script can scope
+every call to whatever KDP category Opportunity Scanner selected that
+week, rather than always asking for coloring-book ideas — see CLAUDE.md's
+Scout section ("Operates within the category Opportunity Scanner
+selected... rather than defaulting to coloring books"). `runScout()`
+persists that category (plus contentType/illustrationStyle) into the
+batch's manifest as `opportunityScanner`, so downstream agents (Loom,
+Writer, Crier) know which branch and style to use.
+
+**Known v2 gap:** Scout doesn't yet use the `web_search` tool for
+live-grounded research — CLAUDE.md's Scout section calls for it, but this
+pass only added category-awareness (a prerequisite for the pipeline to
+route correctly). Research/competition/keyword estimates below are still
+pure LLM estimates, same as v1.
+
 Both calls use Claude's structured tool-use output so results are
 type-checked JSON, not parsed prose. Every report explicitly discloses
 that these are the model's estimates, not live Amazon/Google
 search-volume data — per the "no fabricated data" guardrail.
 
-There's no human greenlight step between Scout and Loom anymore — Scout's
-selection *is* the automated decision. The human checkpoint moved to the
-end of the pipeline: the pull request a human reviews before publishing.
+There's no human greenlight step between Scout and Loom/Writer anymore —
+Scout's selection *is* the automated decision. The human checkpoint moved
+to the end of the pipeline: the pull request a human reviews before
+publishing.
 
 ## Files
 

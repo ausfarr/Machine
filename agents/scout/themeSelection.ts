@@ -6,12 +6,12 @@ import type { ClaudeClient, ThemeSelection } from "./claudeClient.ts";
  * Scout fails loudly rather than silently proceeding on a hallucinated
  * theme that was never in the queue.
  */
-export async function selectTheme(candidates: string[], client: ClaudeClient): Promise<ThemeSelection> {
+export async function selectTheme(candidates: string[], client: ClaudeClient, category?: string): Promise<ThemeSelection> {
   if (candidates.length === 0) {
     throw new Error("selectTheme requires at least one candidate theme.");
   }
 
-  const selection = await client.selectTheme(candidates);
+  const selection = await client.selectTheme(candidates, category);
 
   const normalizedCandidates = new Set(candidates.map((c) => c.trim().toLowerCase()));
   if (!normalizedCandidates.has(selection.selectedTheme.trim().toLowerCase())) {

@@ -84,4 +84,48 @@ describe("runScout", () => {
     const md = readFileSync(result.researchMdPath, "utf-8");
     expect(md).toContain("Why this theme was selected");
   });
+
+  it("writes an opportunityScanner manifest block and passes its category to analyzeTheme when provided", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "scout-test-"));
+
+    let capturedCategory: string | undefined;
+    const client = fakeClaudeClient(fakeAnalysis);
+    const spyClient = {
+      ...client,
+      analyzeTheme: async (theme: string, category?: string) => {
+        capturedCategory = category;
+        return client.analyzeTheme(theme, category);
+      },
+    };
+
+    const opportunityScanner = {
+      category: "Poetry Collections",
+      contentType: "text" as const,
+      selectionRationale: "Fake selection rationale.",
+      reportJsonPath: "fake.json",
+      reportMdPath: "fake.md",
+      completedAt: new Date().toISOString(),
+    };
+
+    const result = await runScout("Autumn Reflections", {
+      batchesDir: tempDir,
+      claudeClient: spyClient,
+      opportunityScanner,
+    });
+
+    expect(capturedCategory).toBe("Poetry Collections");
+
+    const manifest = JSON.parse(readFileSync(join(result.batchDir, "manifest.json"), "utf-8"));
+    expect(manifest.opportunityScanner.category).toBe("Poetry Collections");
+    expect(manifest.opportunityScanner.contentType).toBe("text");
+  });
+
+  it("omits the opportunityScanner manifest block for a standalone run with no category context", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "scout-test-"));
+
+    const result = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient(fakeAnalysis) });
+
+    const manifest = JSON.parse(readFileSync(join(result.batchDir, "manifest.json"), "utf-8"));
+    expect(manifest.opportunityScanner).toBeUndefined();
+  });
 });

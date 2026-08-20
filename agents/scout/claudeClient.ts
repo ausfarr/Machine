@@ -53,13 +53,16 @@ export const CandidateThemesSchema = z.object({
   themes: z.array(z.string()),
 });
 
+/** Preserves v1 behavior for a call with no category context (e.g. `npm run scout` run directly on a theme for manual testing). */
+export const DEFAULT_CATEGORY = "coloring book";
+
 export interface ClaudeClient {
-  /** Proposes fresh candidate themes so the pipeline never depends on a human having pre-populated theme-queue.json. */
-  generateCandidateThemes(count: number, avoidThemes: string[]): Promise<string[]>;
-  /** Ranks every candidate and picks the one to pursue next. */
-  selectTheme(candidates: string[]): Promise<ThemeSelection>;
-  /** Deep-dives the selected theme for the research report. */
-  analyzeTheme(theme: string): Promise<ThemeAnalysis>;
+  /** Proposes fresh candidate themes so the pipeline never depends on a human having pre-populated theme-queue.json. `category` scopes ideas to the KDP category/format Opportunity Scanner selected — see CLAUDE.md's Scout section. */
+  generateCandidateThemes(count: number, avoidThemes: string[], category?: string): Promise<string[]>;
+  /** Ranks every candidate and picks the one to pursue next, within the given category. */
+  selectTheme(candidates: string[], category?: string): Promise<ThemeSelection>;
+  /** Deep-dives the selected theme for the research report, within the given category. */
+  analyzeTheme(theme: string, category?: string): Promise<ThemeAnalysis>;
 }
 
 function requireApiKey(): string {
@@ -81,10 +84,10 @@ export class AnthropicClaudeClient implements ClaudeClient {
     this.model = options.model ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
   }
 
-  async generateCandidateThemes(count: number, avoidThemes: string[]): Promise<string[]> {
+  async generateCandidateThemes(count: number, avoidThemes: string[], category: string = DEFAULT_CATEGORY): Promise<string[]> {
     const tool = {
       name: "report_candidate_themes",
-      description: "Report a list of candidate coloring-book theme ideas.",
+      description: `Report a list of candidate ${category} theme ideas.`,
       input_schema: {
         type: "object" as const,
         properties: {
@@ -111,7 +114,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       messages: [
         {
           role: "user",
-          content: `You are Scout, the niche/keyword research step of a coloring-book publishing pipeline sold on Amazon KDP. Propose ${count} distinct, evergreen coloring-book theme ideas worth researching next. Prefer specific, differentiated angles (a style, audience, or motif) over generic broad nouns that are likely saturated. Each theme string gets used downstream as literal wording in an image-generation prompt, so keep every theme itself simple and concrete (a subject, setting, or style) — do not describe a target audience's emotional or mental state (e.g. "for anxious kids," "for grieving readers"); that framing adds nothing for a colorist choosing a book and can trip an image model's content-safety filters.${avoidClause}`,
+          content: `You are Scout, the niche/keyword research step of a ${category} publishing pipeline sold on Amazon KDP. Propose ${count} distinct, evergreen ${category} theme ideas worth researching next. Prefer specific, differentiated angles (a style, audience, or motif) over generic broad nouns that are likely saturated. Each theme string gets used downstream as literal wording in a generation prompt, so keep every theme itself simple and concrete (a subject, setting, or style) — do not describe a target audience's emotional or mental state (e.g. "for anxious kids," "for grieving readers"); that framing adds nothing for a shopper choosing a book and can trip a downstream generation model's content-safety filters.${avoidClause}`,
         },
       ],
     });
@@ -120,10 +123,10 @@ export class AnthropicClaudeClient implements ClaudeClient {
     return result.themes;
   }
 
-  async selectTheme(candidates: string[]): Promise<ThemeSelection> {
+  async selectTheme(candidates: string[], category: string = DEFAULT_CATEGORY): Promise<ThemeSelection> {
     const tool = {
       name: "report_theme_selection",
-      description: "Report the ranked candidate coloring-book themes and which one to pursue next.",
+      description: `Report the ranked candidate ${category} themes and which one to pursue next.`,
       input_schema: {
         type: "object" as const,
         properties: {
@@ -154,7 +157,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       messages: [
         {
           role: "user",
-          content: `You are Scout, the niche/keyword research step of a coloring-book publishing pipeline sold on Amazon KDP. Evaluate these candidate themes for a coloring book and pick the single best one to pursue next, considering likely competition level, differentiation potential, and evergreen appeal. Candidates:\n${candidates.map((c, i) => `${i + 1}. ${c}`).join("\n")}`,
+          content: `You are Scout, the niche/keyword research step of a ${category} publishing pipeline sold on Amazon KDP. Evaluate these candidate themes for a ${category} and pick the single best one to pursue next, considering likely competition level, differentiation potential, and evergreen appeal. Candidates:\n${candidates.map((c, i) => `${i + 1}. ${c}`).join("\n")}`,
         },
       ],
     });
@@ -162,10 +165,10 @@ export class AnthropicClaudeClient implements ClaudeClient {
     return parseToolResult(message, tool.name, ThemeSelectionSchema, ["rankings"]);
   }
 
-  async analyzeTheme(theme: string): Promise<ThemeAnalysis> {
+  async analyzeTheme(theme: string, category: string = DEFAULT_CATEGORY): Promise<ThemeAnalysis> {
     const tool = {
       name: "report_theme_analysis",
-      description: "Report a competition/angle/keyword analysis for one coloring-book theme.",
+      description: `Report a competition/angle/keyword analysis for one ${category} theme.`,
       input_schema: {
         type: "object" as const,
         properties: {
@@ -193,7 +196,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
       messages: [
         {
           role: "user",
-          content: `You are Scout, the niche/keyword research step of a coloring-book publishing pipeline sold on Amazon KDP. Research this theme for a coloring book: "${theme}". Estimate its Amazon KDP competition level, suggest one concrete differentiating angle, and propose keyword variants a shopper might search.`,
+          content: `You are Scout, the niche/keyword research step of a ${category} publishing pipeline sold on Amazon KDP. Research this theme for a ${category}: "${theme}". Estimate its Amazon KDP competition level, suggest one concrete differentiating angle, and propose keyword variants a shopper might search.`,
         },
       ],
     });

@@ -1,7 +1,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { validateManifest, type BatchManifest } from "../../schemas/manifest.ts";
-import { AnthropicClaudeClient, type ClaudeClient, type ThemeSelection } from "./claudeClient.ts";
+import type { OpportunityScannerRunResult } from "../opportunity-scanner/index.ts";
+import { AnthropicClaudeClient, DEFAULT_CATEGORY, type ClaudeClient, type ThemeSelection } from "./claudeClient.ts";
 import { uniqueBatchId } from "./slug.ts";
 
 export interface ScoutRunOptions {
@@ -11,6 +12,8 @@ export interface ScoutRunOptions {
   claudeClient?: ClaudeClient;
   /** When this theme came from an automated queue selection, carries the rationale for the record. */
   selection?: ThemeSelection;
+  /** The category Opportunity Scanner selected this theme within — persisted into the manifest and used to scope Claude's research. Omitted for a standalone `npm run scout` run on a single theme (manual testing), which falls back to DEFAULT_CATEGORY research framing and writes no opportunityScanner manifest block. */
+  opportunityScanner?: OpportunityScannerRunResult;
 }
 
 export interface ScoutRunResult {
@@ -84,7 +87,8 @@ export async function runScout(theme: string, options: ScoutRunOptions = {}): Pr
   const batchDir = join(batchesDir, batchId);
 
   const generatedAt = new Date().toISOString();
-  const analysis = await claudeClient.analyzeTheme(trimmedTheme);
+  const category = options.opportunityScanner?.category ?? DEFAULT_CATEGORY;
+  const analysis = await claudeClient.analyzeTheme(trimmedTheme, category);
 
   mkdirSync(batchDir, { recursive: true });
 
@@ -113,6 +117,17 @@ export async function runScout(theme: string, options: ScoutRunOptions = {}): Pr
     theme: trimmedTheme,
     createdAt: generatedAt,
     updatedAt: generatedAt,
+    opportunityScanner: options.opportunityScanner
+      ? {
+          category: options.opportunityScanner.category,
+          contentType: options.opportunityScanner.contentType,
+          illustrationStyle: options.opportunityScanner.illustrationStyle,
+          selectionRationale: options.opportunityScanner.selectionRationale,
+          reportJsonPath: options.opportunityScanner.reportJsonPath,
+          reportMdPath: options.opportunityScanner.reportMdPath,
+          completedAt: options.opportunityScanner.completedAt,
+        }
+      : undefined,
     scout: {
       reportJsonPath: researchJsonPath,
       reportMdPath: researchMdPath,
