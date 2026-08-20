@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -66,5 +66,46 @@ describe("runLoom", () => {
     const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
     const result = runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 5 });
     expect(result.manifest.loom?.promptCount).toBe(5);
+  });
+
+  it("defaults to coloring-book style when the batch has no Opportunity Scanner data", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
+
+    const result = runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 5 });
+
+    const promptsFile = JSON.parse(readFileSync(result.promptsPath, "utf-8"));
+    expect(promptsFile.illustrationStyle).toBe("coloring-book");
+    expect(promptsFile.cover.prompt).toContain("Fantasy Castles: A Coloring Book");
+    expect(promptsFile.styleGuidance).toMatch(/black-and-white/i);
+  });
+
+  it("uses picture-book prompt style when Opportunity Scanner selected it", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "loom-test-"));
+    const scouted = await runScout("Fantasy Castles", { batchesDir: tempDir, claudeClient: fakeClaudeClient() });
+
+    const manifestPath = join(scouted.batchDir, "manifest.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+    manifest.opportunityScanner = {
+      category: "Children's Picture Books",
+      contentType: "illustrated",
+      illustrationStyle: "picture-book",
+      selectionRationale: "Test fixture.",
+      reportJsonPath: "fake.json",
+      reportMdPath: "fake.md",
+      completedAt: manifest.createdAt,
+    };
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+    const result = runLoom(scouted.batchId, { batchesDir: tempDir, promptCount: 5 });
+
+    const promptsFile = JSON.parse(readFileSync(result.promptsPath, "utf-8"));
+    expect(promptsFile.illustrationStyle).toBe("picture-book");
+    expect(promptsFile.cover.prompt).toContain("Fantasy Castles: A Picture Book");
+    expect(promptsFile.styleGuidance).toMatch(/picture-book/i);
+    expect(promptsFile.styleGuidance).not.toMatch(/black-and-white/i);
+
+    const frontBack = readFileSync(result.frontBackMatterPath, "utf-8");
+    expect(frontBack).toContain("A Picture Book");
   });
 });

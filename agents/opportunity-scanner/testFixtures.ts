@@ -7,6 +7,7 @@ export function fakeOpportunityScannerClient(selection: Partial<CategorySelectio
       {
         category: "Seasonal Coloring Books",
         contentType: "illustrated",
+        illustrationStyle: "coloring-book",
         score: 82,
         rationale: "Fake rationale for testing.",
         groundedInLiveSearch: true,

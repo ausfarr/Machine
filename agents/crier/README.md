@@ -34,9 +34,20 @@ So:
   paths, not a live category-tree lookup — `listing.json` flags this with
   a `categoryNote` telling the human to confirm the exact path in KDP's
   category picker before publishing.
-- **Title, subtitle, and description** are templated from the batch's own
-  theme, page count, and Scout's suggested angle — not invented market
-  copy.
+- **Title and subtitle** are templated from the batch's own theme, page
+  count, and its `illustrationStyle` (from `manifest.opportunityScanner`,
+  when present — defaults to `coloring-book` for a batch created via
+  `npm run scout` directly). Loom's cover-art prompt embeds this exact
+  same title (see `agents/loom/README.md`), so the two can never diverge.
+- **Description** is templated from the batch's own theme, page count, and
+  Scout's suggested angle — not invented market copy.
+
+**Known v2 gap:** keywords, categories, and the description body are
+still coloring-book-only — v2's multi-category expansion generalized
+title/subtitle first because Loom's cover art depends on them staying in
+sync, but a picture-book (or later, a text-only Writer) batch will still
+get a coloring-book-flavored `listing.json` for these fields until Crier
+gets the same per-category treatment.
 
 ## Files
 

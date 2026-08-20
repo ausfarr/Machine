@@ -40,4 +40,20 @@ describe("buildTitle / buildSubtitle", () => {
     expect(subtitle).toContain("Fantasy Castles");
     expect(subtitle).toContain("24");
   });
+
+  it("default to coloring-book style when no illustrationStyle is given", () => {
+    expect(buildTitle("Fantasy Castles")).toBe(buildTitle("Fantasy Castles", "coloring-book"));
+    expect(buildSubtitle("Fantasy Castles", 24)).toBe(buildSubtitle("Fantasy Castles", 24, "coloring-book"));
+  });
+
+  it("produce different, theme-including text for picture-book style", () => {
+    const title = buildTitle("Fantasy Castles", "picture-book");
+    expect(title).toContain("Fantasy Castles");
+    expect(title).not.toBe(buildTitle("Fantasy Castles", "coloring-book"));
+
+    const subtitle = buildSubtitle("Fantasy Castles", 24, "picture-book");
+    expect(subtitle).toContain("Fantasy Castles");
+    expect(subtitle).toContain("24");
+    expect(subtitle).not.toBe(buildSubtitle("Fantasy Castles", 24, "coloring-book"));
+  });
 });

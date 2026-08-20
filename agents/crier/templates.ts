@@ -4,7 +4,17 @@
  * is built from data already produced earlier in the pipeline (theme,
  * suggested angle, page count) plus a couple of generic, real KDP
  * category names, not invented market data.
+ *
+ * buildTitle/buildSubtitle take an IllustrationStyle so a batch's cover
+ * art (built by Loom, see agents/loom/templates.ts's buildCoverPrompt)
+ * and its listing.json title never diverge — Loom imports buildTitle
+ * directly rather than each side building its own title text. Keywords,
+ * categories, and description below are still coloring-book-only; v2's
+ * multi-category expansion generalizes title/subtitle first since Loom's
+ * cover art depends on them, but the rest of Crier still needs the same
+ * treatment before non-coloring-book batches get a correct listing.
  */
+import type { IllustrationStyle } from "../../schemas/manifest.ts";
 
 /** Deterministic keyword-phrase variants derived from the theme text itself. */
 function generateKeywordVariants(theme: string): string[] {
@@ -57,12 +67,28 @@ export function buildKeywords(theme: string): string[] {
   return unique.slice(0, 7);
 }
 
-export function buildTitle(theme: string): string {
-  return `${theme}: A Coloring Book`;
+const DEFAULT_ILLUSTRATION_STYLE: IllustrationStyle = "coloring-book";
+
+export function buildTitle(theme: string, illustrationStyle: IllustrationStyle = DEFAULT_ILLUSTRATION_STYLE): string {
+  switch (illustrationStyle) {
+    case "picture-book":
+      return `${theme}: A Picture Book`;
+    case "coloring-book":
+      return `${theme}: A Coloring Book`;
+  }
 }
 
-export function buildSubtitle(theme: string, pageCount: number): string {
-  return `${pageCount} Original ${theme} Coloring Pages for Relaxation`;
+export function buildSubtitle(
+  theme: string,
+  pageCount: number,
+  illustrationStyle: IllustrationStyle = DEFAULT_ILLUSTRATION_STYLE
+): string {
+  switch (illustrationStyle) {
+    case "picture-book":
+      return `A ${pageCount}-Page Illustrated Picture Book About ${theme}`;
+    case "coloring-book":
+      return `${pageCount} Original ${theme} Coloring Pages for Relaxation`;
+  }
 }
 
 export function buildDescription(theme: string, pageCount: number, suggestedAngle: string): string {

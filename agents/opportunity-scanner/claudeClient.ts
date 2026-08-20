@@ -14,10 +14,13 @@ import { parseToolResult } from "../scout/claudeClient.ts";
 const DEFAULT_MODEL = "claude-sonnet-5";
 
 export type ContentType = "illustrated" | "text";
+export type IllustrationStyle = "coloring-book" | "picture-book";
 
 export interface CategoryCandidate {
   category: string;
   contentType: ContentType;
+  /** Which Loom prompt family this illustrated category needs. Required when contentType is "illustrated"; meaningless for "text". */
+  illustrationStyle?: IllustrationStyle;
   score: number;
   rationale: string;
   /** True if this candidate's evaluation drew on real web_search results; false if it's the model's own estimate/reasoning. */
@@ -32,13 +35,18 @@ export interface CategorySelection {
   sourcesConsulted: string[];
 }
 
-const CategoryCandidateSchema = z.object({
-  category: z.string(),
-  contentType: z.enum(["illustrated", "text"]),
-  score: z.number(),
-  rationale: z.string(),
-  groundedInLiveSearch: z.boolean(),
-});
+const CategoryCandidateSchema = z
+  .object({
+    category: z.string(),
+    contentType: z.enum(["illustrated", "text"]),
+    illustrationStyle: z.enum(["coloring-book", "picture-book"]).optional(),
+    score: z.number(),
+    rationale: z.string(),
+    groundedInLiveSearch: z.boolean(),
+  })
+  .refine((c) => c.contentType !== "illustrated" || c.illustrationStyle !== undefined, {
+    message: "illustrationStyle is required when contentType is 'illustrated'",
+  });
 
 const CategorySelectionSchema = z.object({
   candidates: z.array(CategoryCandidateSchema),
@@ -80,6 +88,12 @@ const REPORT_TOOL = {
               enum: ["illustrated", "text"],
               description: "'illustrated' if this category needs interior artwork (routes to Loom+Etch downstream), 'text' if it's a text-only manuscript (routes to Writer).",
             },
+            illustrationStyle: {
+              type: "string",
+              enum: ["coloring-book", "picture-book"],
+              description:
+                "Required when contentType is 'illustrated': 'coloring-book' for black-and-white line-art coloring pages, 'picture-book' for full-color narrative children's-book illustration. Omit entirely when contentType is 'text'.",
+            },
             score: { type: "number", description: "0-100, higher is more promising" },
             rationale: { type: "string" },
             groundedInLiveSearch: {
@@ -109,7 +123,7 @@ function buildPrompt(avoidCategories: string[]): string {
       ? ` Avoid repeating, and prefer to avoid close variants of, these categories chosen in recent weeks (unless you have a strong, stated reason to revisit one): ${avoidCategories.join(", ")}.`
       : "";
 
-  return `You are Opportunity Scanner, the weekly category-selection step of a KDP publishing pipeline. Use the web_search tool to check current Amazon KDP category/bestseller signal, review-count signal, and general trend signal, then propose 4-6 distinct candidate KDP book categories/formats worth pursuing this week — spanning both illustrated formats (coloring books, children's picture books) and text-only formats (poetry collections, short fiction, journals with written prompts), not just one kind. For each candidate, search for real signal before scoring it, and be honest in "groundedInLiveSearch" about whether your evaluation actually used search results or is your own estimate. Then pick exactly one category to pursue this week — the single best balance of demand signal and differentiation potential — and call report_category_selection with every candidate you considered and your selection.${avoidClause} Scope is Amazon KDP only (paperback/low-content or text-only formats) — do not propose anything outside KDP (no Etsy, Shopify, or general print-on-demand).`;
+  return `You are Opportunity Scanner, the weekly category-selection step of a KDP publishing pipeline. Use the web_search tool to check current Amazon KDP category/bestseller signal, review-count signal, and general trend signal, then propose 4-6 distinct candidate KDP book categories/formats worth pursuing this week — spanning both illustrated formats (coloring books, children's picture books) and text-only formats (poetry collections, short fiction, journals with written prompts), not just one kind. For every illustrated candidate, also classify its illustrationStyle: 'coloring-book' for black-and-white line-art pages, or 'picture-book' for full-color narrative children's-book illustration — this is what routes the category to the right downstream prompt style, so pick whichever actually matches the candidate you're proposing, not a default. For each candidate, search for real signal before scoring it, and be honest in "groundedInLiveSearch" about whether your evaluation actually used search results or is your own estimate. Then pick exactly one category to pursue this week — the single best balance of demand signal and differentiation potential — and call report_category_selection with every candidate you considered and your selection.${avoidClause} Scope is Amazon KDP only (paperback/low-content or text-only formats) — do not propose anything outside KDP (no Etsy, Shopify, or general print-on-demand).`;
 }
 
 /** Extracts source titles/URLs from any web_search_tool_result blocks in the response, for the audit trail. */

@@ -21,15 +21,23 @@ const isoTimestamp = z.string().datetime({ offset: true });
 export const ContentTypeSchema = z.enum(["illustrated", "text"]);
 export type ContentType = z.infer<typeof ContentTypeSchema>;
 
+/** Which family of composition/style templates Loom uses for an illustrated category. Meaningless (and absent) for contentType "text". */
+export const IllustrationStyleSchema = z.enum(["coloring-book", "picture-book"]);
+export type IllustrationStyle = z.infer<typeof IllustrationStyleSchema>;
+
 /**
  * Opportunity Scanner's output: the KDP category/format it selected for
  * this batch, grounded in live web_search signal (see CLAUDE.md's
  * Authorized external APIs section). `contentType` is what routes the
- * pipeline to Loom+Etch (illustrated) or Writer (text) downstream.
+ * pipeline to Loom+Etch (illustrated) or Writer (text) downstream;
+ * `illustrationStyle` is what routes an illustrated category to the right
+ * Loom prompt family (coloring-book page prompts vs. picture-book
+ * illustration prompts).
  */
 export const OpportunityScannerResultSchema = z.object({
   category: z.string(),
   contentType: ContentTypeSchema,
+  illustrationStyle: IllustrationStyleSchema.optional(),
   selectionRationale: z.string(),
   reportJsonPath: z.string(),
   reportMdPath: z.string(),

@@ -14,6 +14,7 @@ export interface OpportunityScannerRunOptions {
 export interface OpportunityScannerRunResult {
   category: string;
   contentType: "illustrated" | "text";
+  illustrationStyle?: "coloring-book" | "picture-book";
   selectionRationale: string;
   reportJsonPath: string;
   reportMdPath: string;
@@ -25,6 +26,7 @@ export interface OpportunityScannerRunLogEntry {
   at: string;
   selectedCategory: string;
   contentType: "illustrated" | "text";
+  illustrationStyle?: "coloring-book" | "picture-book";
   candidateCount: number;
   reportJsonPath: string;
   reportMdPath: string;
@@ -79,7 +81,7 @@ Generated: ${generatedAt}
 
 > ${methodologyNote}
 
-## Selected category: ${selectedCategory} (${selected?.contentType ?? "unknown"})
+## Selected category: ${selectedCategory} (${selected?.contentType ?? "unknown"}${selected?.illustrationStyle ? `, ${selected.illustrationStyle}` : ""})
 
 ${selectionRationale}
 
@@ -162,6 +164,7 @@ export async function runOpportunityScanner(options: OpportunityScannerRunOption
     at: generatedAt,
     selectedCategory: selection.selectedCategory,
     contentType: selected.contentType,
+    illustrationStyle: selected.illustrationStyle,
     candidateCount: selection.candidates.length,
     reportJsonPath,
     reportMdPath,
@@ -170,6 +173,7 @@ export async function runOpportunityScanner(options: OpportunityScannerRunOption
   return {
     category: selection.selectedCategory,
     contentType: selected.contentType,
+    illustrationStyle: selected.illustrationStyle,
     selectionRationale: selection.selectionRationale,
     reportJsonPath,
     reportMdPath,

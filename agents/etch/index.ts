@@ -31,7 +31,7 @@ interface PromptsFile {
   theme: string;
   styleGuidance: string;
   prompts: PromptEntry[];
-  cover: { prompt: string };
+  cover: { prompt: string; styleGuidance: string };
 }
 
 export async function runEtch(batchId: string, options: EtchRunOptions = {}): Promise<EtchRunResult> {
@@ -91,7 +91,7 @@ export async function runEtch(batchId: string, options: EtchRunOptions = {}): Pr
 
   const coverArtPath = join(batchDir, COVER_ART_FILENAME);
   try {
-    await generateCoverArt(imageClient, promptsFile.cover.prompt, coverArtPath);
+    await generateCoverArt(imageClient, promptsFile.cover.prompt, promptsFile.cover.styleGuidance, coverArtPath);
   } catch (err) {
     throw new Error(`Etch: ${err instanceof Error ? err.message : err}`);
   }
