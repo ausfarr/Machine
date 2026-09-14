@@ -1,0 +1,68 @@
+{
+  "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+  "stage": "listed",
+  "theme": "Corgi portraits in seasonal cottagecore settings",
+  "createdAt": "2026-09-14T18:32:01.739Z",
+  "updatedAt": "2026-09-14T18:37:14.964Z",
+  "opportunityScanner": {
+    "category": "Bold & Easy adult coloring books in underserved aesthetic sub-niches (cottagecore, dark academia, witchy/pagan, dog-breed-specific)",
+    "contentType": "illustrated",
+    "illustrationStyle": "coloring-book",
+    "selectionRationale": "This candidate has the strongest triangulated live signal of the set: five-plus independent 2026 sources (KDPEasy, KDPBuilder, BookIllustrationAI, Medium case studies, Automateed) all independently converge on 'Bold and Easy' as the dominant coloring-book growth trend, now carrying real commercial validation via a traditional-publisher acquisition of the style's originator, while also giving concrete, countable competition benchmarks (dark academia under 50 titles, cottagecore under 200) that make differentiation measurable rather than guesswork. It beats the guided-journal candidate on differentiation clarity (exact sub-niche title counts vs. journals' vaguer 'audience specificity' advice) and beats children's picture books on production risk (simple bold-line art is fast and cheap to produce well, whereas picture books require commissioned-quality illustration to compete with trade publishers). Poetry and flash fiction were both grounded in search but showed clearly weaker monetization/demand signals this week. Net: strong, currently-accelerating demand plus a documented, narrow competitive gap make this the best balance of opportunity and differentiation to pursue this week.",
+    "reportJsonPath": "agents/opportunity-scanner/reports/2026-09-14-bold-easy-adult-coloring-books-in-underserved-aesthetic-sub-niches-cottagecore-dark-academia-witchy-pagan-dog-breed-specific/report.json",
+    "reportMdPath": "agents/opportunity-scanner/reports/2026-09-14-bold-easy-adult-coloring-books-in-underserved-aesthetic-sub-niches-cottagecore-dark-academia-witchy-pagan-dog-breed-specific/report.md",
+    "completedAt": "2026-09-14T18:31:39.185Z"
+  },
+  "scout": {
+    "reportJsonPath": "batches/corgi-portraits-in-seasonal-cottagecore-settings/research.json",
+    "reportMdPath": "batches/corgi-portraits-in-seasonal-cottagecore-settings/research.md",
+    "competitionLevel": "medium",
+    "suggestedAngle": "Structure the book as a 4-season journey (Spring/Summer/Autumn/Winter) where each corgi is shown in bold, thick-outlined easy scenes doing a signature cottagecore activity per season—e.g., planting tulips in spring, picnicking in a wildflower meadow in summer, harvesting pumpkins in fall, and sipping cocoa by a fireplace in winter—paired with cottage-style props (mason jars, quilts, garden tools, baskets) to create a giftable, thematically bundled product that stands apart from generic single-season or plain 'dog portrait' coloring books.",
+    "selectionRationale": "This theme wins by stacking two proven demand drivers—dog-breed specificity and cottagecore aesthetics—into one low-competition long-tail keyword ('corgi coloring book' + seasonal cottage themes) rather than competing in the oversaturated generic dog or dark academia/gothic architecture spaces. It's evergreen (four seasonal sub-volumes possible), easy to execute as true bold/easy line art (a corgi + simple cottage/garden background) without the rendering difficulty of architectural interiors or stained glass, and taps a devoted breed fanbase with strong gifting behavior. It offers the best balance of differentiation, feasible production simplicity, and repeatable series potential of all five candidates.",
+    "completedAt": "2026-09-14T18:32:01.739Z"
+  },
+  "loom": {
+    "promptsPath": "batches/corgi-portraits-in-seasonal-cottagecore-settings/prompts.json",
+    "promptCount": 24,
+    "frontMatterDraft": "Title page: \"Corgi portraits in seasonal cottagecore settings: A Coloring Book\"\n\nCopyright page: (c) [YEAR] [PUBLISHER NAME]. All rights reserved. Interior illustrations created with AI-assisted image generation; a human curated and selected every page.\n\nIntroduction (short, 2-3 sentences): Welcome the colorist to this collection of corgi portraits in seasonal cottagecore settings illustrations, note the single-sided page layout, and invite them to test markers on the back of a page first.",
+    "backMatterDraft": "Thank you for coloring \"Corgi portraits in seasonal cottagecore settings\"! We hope these pages brought a few relaxing hours.\n\nIf you enjoyed this book, a short review helps other colorists find it — we'd be grateful for a few words.\n\nLook for more coloring books in this series.",
+    "completedAt": "2026-09-14T18:32:09.607Z"
+  },
+  "images": {
+    "folder": "batches/corgi-portraits-in-seasonal-cottagecore-settings/images",
+    "count": 24,
+    "addedAt": "2026-09-14T18:35:49.162Z",
+    "source": "etch"
+  },
+  "coverArt": {
+    "path": "batches/corgi-portraits-in-seasonal-cottagecore-settings/cover-art.png",
+    "addedAt": "2026-09-14T18:35:58.924Z",
+    "source": "etch"
+  },
+  "bindery": {
+    "interiorPdfPath": "batches/corgi-portraits-in-seasonal-cottagecore-settings/interior.pdf",
+    "trimSize": "8.5x11in",
+    "pageCount": 24,
+    "completedAt": "2026-09-14T18:37:14.962Z"
+  },
+  "crier": {
+    "listingPath": "batches/corgi-portraits-in-seasonal-cottagecore-settings/listing.json",
+    "title": "Corgi portraits in seasonal cottagecore settings: A Coloring Book",
+    "subtitle": "24 Original Corgi portraits in seasonal cottagecore settings Coloring Pages for Relaxation",
+    "keywords": [
+      "Corgi portraits in seasonal cottagecore settings",
+      "adult Corgi portraits in seasonal cottagecore",
+      "easy Corgi portraits in seasonal cottagecore",
+      "detailed Corgi portraits in seasonal cottagecore",
+      "relaxation coloring book for adults",
+      "stress relief coloring pages",
+      "line art coloring book"
+    ],
+    "categories": [
+      "Crafts, Hobbies & Home > Crafts & Hobbies > Coloring Books for Grown-Ups",
+      "Humor & Entertainment > Puzzles & Games > Coloring Books for Grown-Ups"
+    ],
+    "aiGeneratedDisclosure": true,
+    "completedAt": "2026-09-14T18:37:14.964Z"
+  }
+}

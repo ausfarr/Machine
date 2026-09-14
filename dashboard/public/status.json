@@ -1,25 +1,152 @@
 {
-  "generatedAt": "2026-08-19T15:13:14.865Z",
+  "generatedAt": "2026-09-14T18:37:15.368Z",
   "summary": {
-    "totalBatches": 3,
+    "totalBatches": 4,
     "invalidBatchCount": 0,
     "byStage": {
       "researched": 0,
       "prompted": 0,
+      "manuscripted": 0,
       "imaged": 0,
       "assembled": 0,
-      "listed": 3,
+      "listed": 4,
       "published": 0
     },
-    "batchesInProgress": 3
+    "batchesInProgress": 4
   },
   "batches": [
+    {
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "stage": "listed",
+      "createdAt": "2026-09-14T18:32:01.739Z",
+      "updatedAt": "2026-09-14T18:37:14.964Z",
+      "opportunityScanner": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-09-14T18:31:39.185Z",
+          "category": "Bold & Easy adult coloring books in underserved aesthetic sub-niches (cottagecore, dark academia, witchy/pagan, dog-breed-specific)",
+          "contentType": "illustrated"
+        }
+      },
+      "scout": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-09-14T18:32:01.739Z",
+          "competitionLevel": "medium"
+        }
+      },
+      "loom": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-09-14T18:32:09.607Z",
+          "promptCount": 24
+        }
+      },
+      "writer": {
+        "done": false
+      },
+      "images": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-09-14T18:35:49.162Z",
+          "count": 24,
+          "source": "etch"
+        }
+      },
+      "coverArt": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-09-14T18:35:58.924Z",
+          "source": "etch"
+        }
+      },
+      "bindery": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-09-14T18:37:14.962Z",
+          "pageCount": 24
+        }
+      },
+      "crier": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-09-14T18:37:14.964Z",
+          "aiGeneratedDisclosure": true
+        }
+      },
+      "published": {
+        "done": false
+      }
+    },
+    {
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "stage": "listed",
+      "createdAt": "2026-08-19T14:04:03.333Z",
+      "updatedAt": "2026-08-19T17:15:37.012Z",
+      "opportunityScanner": {
+        "done": false
+      },
+      "scout": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:04:03.333Z",
+          "competitionLevel": "medium"
+        }
+      },
+      "loom": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:04:13.800Z",
+          "promptCount": 4
+        }
+      },
+      "writer": {
+        "done": false
+      },
+      "images": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T14:04:52.746Z",
+          "count": 4,
+          "source": "etch"
+        }
+      },
+      "coverArt": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T16:50:40.709Z",
+          "source": "etch"
+        }
+      },
+      "bindery": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T16:50:40.709Z",
+          "pageCount": 4
+        }
+      },
+      "crier": {
+        "done": true,
+        "detail": {
+          "completedAt": "2026-08-19T14:05:02.624Z",
+          "aiGeneratedDisclosure": true
+        }
+      },
+      "published": {
+        "done": false
+      }
+    },
     {
       "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
       "theme": "Vintage botanical greenhouse plants with brass fixtures",
       "stage": "listed",
       "createdAt": "2026-08-19T15:08:32.572Z",
-      "updatedAt": "2026-08-19T15:13:14.569Z",
+      "updatedAt": "2026-08-19T17:14:50.139Z",
+      "opportunityScanner": {
+        "done": false
+      },
       "scout": {
         "done": true,
         "detail": {
@@ -34,6 +161,9 @@
           "promptCount": 24
         }
       },
+      "writer": {
+        "done": false
+      },
       "images": {
         "done": true,
         "detail": {
@@ -42,10 +172,17 @@
           "source": "etch"
         }
       },
+      "coverArt": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T16:50:20.708Z",
+          "source": "etch"
+        }
+      },
       "bindery": {
         "done": true,
         "detail": {
-          "completedAt": "2026-08-19T15:13:14.567Z",
+          "completedAt": "2026-08-19T16:50:20.708Z",
           "pageCount": 24
         }
       },
@@ -65,7 +202,10 @@
       "theme": "Cozy witch cottages with potion gardens",
       "stage": "listed",
       "createdAt": "2026-08-19T14:59:07.440Z",
-      "updatedAt": "2026-08-19T15:00:03.708Z",
+      "updatedAt": "2026-08-19T17:14:28.094Z",
+      "opportunityScanner": {
+        "done": false
+      },
       "scout": {
         "done": true,
         "detail": {
@@ -80,6 +220,9 @@
           "promptCount": 4
         }
       },
+      "writer": {
+        "done": false
+      },
       "images": {
         "done": true,
         "detail": {
@@ -88,10 +231,17 @@
           "source": "etch"
         }
       },
+      "coverArt": {
+        "done": true,
+        "detail": {
+          "addedAt": "2026-08-19T16:49:57.410Z",
+          "source": "etch"
+        }
+      },
       "bindery": {
         "done": true,
         "detail": {
-          "completedAt": "2026-08-19T15:00:03.705Z",
+          "completedAt": "2026-08-19T16:49:57.410Z",
           "pageCount": 4
         }
       },
@@ -105,108 +255,80 @@
       "published": {
         "done": false
       }
-    },
-    {
-      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
-      "theme": "Whimsical mushroom houses with tiny woodland doors",
-      "stage": "listed",
-      "createdAt": "2026-08-19T14:04:03.333Z",
-      "updatedAt": "2026-08-19T14:05:02.624Z",
-      "scout": {
-        "done": true,
-        "detail": {
-          "completedAt": "2026-08-19T14:04:03.333Z",
-          "competitionLevel": "medium"
-        }
-      },
-      "loom": {
-        "done": true,
-        "detail": {
-          "completedAt": "2026-08-19T14:04:13.800Z",
-          "promptCount": 4
-        }
-      },
-      "images": {
-        "done": true,
-        "detail": {
-          "addedAt": "2026-08-19T14:04:52.746Z",
-          "count": 4,
-          "source": "etch"
-        }
-      },
-      "bindery": {
-        "done": true,
-        "detail": {
-          "completedAt": "2026-08-19T14:05:02.622Z",
-          "pageCount": 4
-        }
-      },
-      "crier": {
-        "done": true,
-        "detail": {
-          "completedAt": "2026-08-19T14:05:02.624Z",
-          "aiGeneratedDisclosure": true
-        }
-      },
-      "published": {
-        "done": false
-      }
     }
   ],
   "invalidBatches": [],
   "agents": [
     {
+      "agent": "opportunityScanner",
+      "status": "active",
+      "lastRanAt": "2026-09-14T18:31:39.185Z",
+      "metric": {
+        "label": "Categories selected",
+        "value": 1
+      }
+    },
+    {
       "agent": "scout",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:08:32.572Z",
+      "lastRanAt": "2026-09-14T18:32:01.739Z",
       "metric": {
         "label": "Themes researched",
-        "value": 3
+        "value": 4
       }
     },
     {
       "agent": "loom",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:08:42.331Z",
+      "lastRanAt": "2026-09-14T18:32:09.607Z",
       "metric": {
         "label": "Prompts generated",
-        "value": 32
+        "value": 56
       }
     },
     {
       "agent": "etch",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:12:15.434Z",
+      "lastRanAt": "2026-09-14T18:35:49.162Z",
       "metric": {
         "label": "Images generated",
-        "value": 32
+        "value": 56
+      }
+    },
+    {
+      "agent": "writer",
+      "status": "not_yet_run",
+      "lastRanAt": null,
+      "metric": {
+        "label": "Words written",
+        "value": 0
       }
     },
     {
       "agent": "bindery",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:13:14.567Z",
+      "lastRanAt": "2026-09-14T18:37:14.962Z",
       "metric": {
         "label": "Interiors assembled",
-        "value": 3
+        "value": 4
       }
     },
     {
       "agent": "crier",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:13:14.569Z",
+      "lastRanAt": "2026-09-14T18:37:14.964Z",
       "metric": {
         "label": "Listings written",
-        "value": 3
+        "value": 4
       }
     },
     {
       "agent": "ledger",
       "status": "active",
-      "lastRanAt": "2026-08-19T15:13:14.865Z",
+      "lastRanAt": "2026-09-14T18:37:15.368Z",
       "metric": {
         "label": "Batches tracked",
-        "value": 3
+        "value": 4
       }
     },
     {
@@ -230,18 +352,74 @@
   ],
   "activity": [
     {
+      "at": "2026-09-14T18:37:14.964Z",
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "actor": "crier",
+      "summary": "Crier wrote the KDP listing copy for \"Corgi portraits in seasonal cottagecore settings\""
+    },
+    {
+      "at": "2026-09-14T18:37:14.962Z",
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 24-page interior for \"Corgi portraits in seasonal cottagecore settings\""
+    },
+    {
+      "at": "2026-09-14T18:35:49.162Z",
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "actor": "etch",
+      "summary": "Etch generated 24 image(s) for \"Corgi portraits in seasonal cottagecore settings\""
+    },
+    {
+      "at": "2026-09-14T18:32:09.607Z",
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "actor": "loom",
+      "summary": "Loom wrote 24 image prompts for \"Corgi portraits in seasonal cottagecore settings\""
+    },
+    {
+      "at": "2026-09-14T18:32:01.739Z",
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "actor": "scout",
+      "summary": "Scout researched \"Corgi portraits in seasonal cottagecore settings\" (competition: medium)"
+    },
+    {
+      "at": "2026-09-14T18:31:39.185Z",
+      "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+      "theme": "Corgi portraits in seasonal cottagecore settings",
+      "actor": "opportunityScanner",
+      "summary": "Opportunity Scanner selected \"Bold & Easy adult coloring books in underserved aesthetic sub-niches (cottagecore, dark academia, witchy/pagan, dog-breed-specific)\" (illustrated) for this batch"
+    },
+    {
+      "at": "2026-08-19T16:50:40.709Z",
+      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
+      "theme": "Whimsical mushroom houses with tiny woodland doors",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 4-page interior for \"Whimsical mushroom houses with tiny woodland doors\""
+    },
+    {
+      "at": "2026-08-19T16:50:20.708Z",
+      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
+      "theme": "Vintage botanical greenhouse plants with brass fixtures",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 24-page interior for \"Vintage botanical greenhouse plants with brass fixtures\""
+    },
+    {
+      "at": "2026-08-19T16:49:57.410Z",
+      "batchId": "cozy-witch-cottages-with-potion-gardens",
+      "theme": "Cozy witch cottages with potion gardens",
+      "actor": "bindery",
+      "summary": "Bindery assembled a 4-page interior for \"Cozy witch cottages with potion gardens\""
+    },
+    {
       "at": "2026-08-19T15:13:14.569Z",
       "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
       "theme": "Vintage botanical greenhouse plants with brass fixtures",
       "actor": "crier",
       "summary": "Crier wrote the KDP listing copy for \"Vintage botanical greenhouse plants with brass fixtures\""
-    },
-    {
-      "at": "2026-08-19T15:13:14.567Z",
-      "batchId": "vintage-botanical-greenhouse-plants-with-brass-fixtures",
-      "theme": "Vintage botanical greenhouse plants with brass fixtures",
-      "actor": "bindery",
-      "summary": "Bindery assembled a 24-page interior for \"Vintage botanical greenhouse plants with brass fixtures\""
     },
     {
       "at": "2026-08-19T15:12:15.434Z",
@@ -272,13 +450,6 @@
       "summary": "Crier wrote the KDP listing copy for \"Cozy witch cottages with potion gardens\""
     },
     {
-      "at": "2026-08-19T15:00:03.705Z",
-      "batchId": "cozy-witch-cottages-with-potion-gardens",
-      "theme": "Cozy witch cottages with potion gardens",
-      "actor": "bindery",
-      "summary": "Bindery assembled a 4-page interior for \"Cozy witch cottages with potion gardens\""
-    },
-    {
       "at": "2026-08-19T14:59:51.299Z",
       "batchId": "cozy-witch-cottages-with-potion-gardens",
       "theme": "Cozy witch cottages with potion gardens",
@@ -307,13 +478,6 @@
       "summary": "Crier wrote the KDP listing copy for \"Whimsical mushroom houses with tiny woodland doors\""
     },
     {
-      "at": "2026-08-19T14:05:02.622Z",
-      "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
-      "theme": "Whimsical mushroom houses with tiny woodland doors",
-      "actor": "bindery",
-      "summary": "Bindery assembled a 4-page interior for \"Whimsical mushroom houses with tiny woodland doors\""
-    },
-    {
       "at": "2026-08-19T14:04:52.746Z",
       "batchId": "whimsical-mushroom-houses-with-tiny-woodland-doors",
       "theme": "Whimsical mushroom houses with tiny woodland doors",
@@ -334,5 +498,10 @@
       "actor": "scout",
       "summary": "Scout researched \"Whimsical mushroom houses with tiny woodland doors\" (competition: medium)"
     }
-  ]
+  ],
+  "fleet": {
+    "totalRevenueByCurrency": {},
+    "totalUnitsSold": 0,
+    "batchesWithSalesData": 0
+  }
 }
