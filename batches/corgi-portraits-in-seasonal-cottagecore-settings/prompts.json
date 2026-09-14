@@ -1,0 +1,109 @@
+{
+  "batchId": "corgi-portraits-in-seasonal-cottagecore-settings",
+  "theme": "Corgi portraits in seasonal cottagecore settings",
+  "generatedAt": "2026-09-14T18:32:09.607Z",
+  "illustrationStyle": "coloring-book",
+  "styleGuidance": "Black-and-white line art only: bold, clean outlines, no shading, no gradients, no color, no gray fill, white background. Designed for an 8.5x11in KDP coloring book interior page, single subject per page unless the prompt says otherwise.",
+  "prompts": [
+    {
+      "index": 1,
+      "prompt": "A close-up view of Corgi portraits in seasonal cottagecore settings, bold clean linework, no shading, no color, white background, coloring book page."
+    },
+    {
+      "index": 2,
+      "prompt": "A wide establishing shot of Corgi portraits in seasonal cottagecore settings with layered background detail, bold outlines, no color, coloring book page."
+    },
+    {
+      "index": 3,
+      "prompt": "Corgi portraits in seasonal cottagecore settings viewed from a low angle looking upward, dramatic perspective, bold linework, no color, coloring book page."
+    },
+    {
+      "index": 4,
+      "prompt": "A symmetrical, centered composition of Corgi portraits in seasonal cottagecore settings with a decorative border, bold outlines, no color, coloring book page."
+    },
+    {
+      "index": 5,
+      "prompt": "Corgi portraits in seasonal cottagecore settings at sunrise, soft light rays suggested through simple line hatching, no color, coloring book page."
+    },
+    {
+      "index": 6,
+      "prompt": "Corgi portraits in seasonal cottagecore settings surrounded by small decorative corner motifs, bold linework, no color, coloring book page."
+    },
+    {
+      "index": 7,
+      "prompt": "A whimsical, slightly exaggerated illustrative rendition of Corgi portraits in seasonal cottagecore settings, bold outlines, no color, coloring book page."
+    },
+    {
+      "index": 8,
+      "prompt": "A highly detailed, intricate rendition of Corgi portraits in seasonal cottagecore settings for experienced colorists, fine linework, no color."
+    },
+    {
+      "index": 9,
+      "prompt": "A simplified, bold-outline rendition of Corgi portraits in seasonal cottagecore settings suitable for beginners, minimal detail, no color."
+    },
+    {
+      "index": 10,
+      "prompt": "Corgi portraits in seasonal cottagecore settings shown in cross-section or cutaway view revealing interior detail, bold linework, no color."
+    },
+    {
+      "index": 11,
+      "prompt": "Corgi portraits in seasonal cottagecore settings paired with a small decorative pattern in one corner, bold outlines, no color."
+    },
+    {
+      "index": 12,
+      "prompt": "A night-time version of Corgi portraits in seasonal cottagecore settings with stars or moon suggested via simple line elements, no color."
+    },
+    {
+      "index": 13,
+      "prompt": "Corgi portraits in seasonal cottagecore settings from a bird's-eye, top-down view, bold outlines, no color."
+    },
+    {
+      "index": 14,
+      "prompt": "A close-up of one distinctive detail from Corgi portraits in seasonal cottagecore settings, dramatically enlarged, bold linework, no color."
+    },
+    {
+      "index": 15,
+      "prompt": "Corgi portraits in seasonal cottagecore settings framed inside a circular vignette, bold outlines, no color."
+    },
+    {
+      "index": 16,
+      "prompt": "Corgi portraits in seasonal cottagecore settings set against a decorative patterned background, bold outlines, no color."
+    },
+    {
+      "index": 17,
+      "prompt": "Two elements of Corgi portraits in seasonal cottagecore settings mirrored symmetrically across the page, bold outlines, no color."
+    },
+    {
+      "index": 18,
+      "prompt": "Corgi portraits in seasonal cottagecore settings rendered with an ornate decorative border in an Art Nouveau style, bold linework, no color."
+    },
+    {
+      "index": 19,
+      "prompt": "Corgi portraits in seasonal cottagecore settings shown mid-action, a dynamic in-progress moment, bold outlines, no color."
+    },
+    {
+      "index": 20,
+      "prompt": "A quiet, still-life style arrangement featuring Corgi portraits in seasonal cottagecore settings, bold outlines, no color."
+    },
+    {
+      "index": 21,
+      "prompt": "Corgi portraits in seasonal cottagecore settings depicted as a two-page spread composition, bold outlines, no color."
+    },
+    {
+      "index": 22,
+      "prompt": "Corgi portraits in seasonal cottagecore settings with a small hidden-detail element added for the colorist to find, bold outlines, no color."
+    },
+    {
+      "index": 23,
+      "prompt": "A stylized silhouette-and-outline hybrid treatment of Corgi portraits in seasonal cottagecore settings, bold shapes, no color."
+    },
+    {
+      "index": 24,
+      "prompt": "Corgi portraits in seasonal cottagecore settings shown at three different scales stacked vertically on the page, bold outlines, no color."
+    }
+  ],
+  "cover": {
+    "prompt": "A striking front-cover illustration capturing the essence of corgi portraits in seasonal cottagecore settings, warm and inviting, suitable to sell a coloring book at a glance. Prominently and legibly integrate the title \"Corgi portraits in seasonal cottagecore settings: A Coloring Book\" into the illustration as attractive, well-composed cover typography.",
+    "styleGuidance": "Full-color, vibrant, richly detailed illustration suitable as a KDP coloring book front cover — eye-catching even at small thumbnail size. Portrait orientation."
+  }
+}

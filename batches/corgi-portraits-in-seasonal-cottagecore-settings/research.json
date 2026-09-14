@@ -1,0 +1,48 @@
+{
+  "theme": "Corgi portraits in seasonal cottagecore settings",
+  "generatedAt": "2026-09-14T18:32:01.739Z",
+  "methodologyNote": "Competition, angle, and keyword signals below are the Anthropic API's estimate, generated from its own knowledge — not live Amazon/Google search-volume data. Scout discloses this so the estimate is never mistaken for real market data.",
+  "competitionLevel": "medium",
+  "competitionRationale": "Generic 'corgi coloring book' and 'cottagecore coloring book' listings each have moderate-to-heavy saturation on KDP individually, but the intersection—corgis specifically styled in seasonal cottagecore scenes (harvest cottages, spring gardens, cozy autumn kitchens, winter cabins)—is thinly covered. Most corgi coloring books are either photorealistic/complex mandala-style or generic 'cute dog' pattern books without a cohesive seasonal aesthetic or bold/easy simplified line work, leaving room for a differentiated entry rather than direct head-to-head competition.",
+  "suggestedAngle": "Structure the book as a 4-season journey (Spring/Summer/Autumn/Winter) where each corgi is shown in bold, thick-outlined easy scenes doing a signature cottagecore activity per season—e.g., planting tulips in spring, picnicking in a wildflower meadow in summer, harvesting pumpkins in fall, and sipping cocoa by a fireplace in winter—paired with cottage-style props (mason jars, quilts, garden tools, baskets) to create a giftable, thematically bundled product that stands apart from generic single-season or plain 'dog portrait' coloring books.",
+  "keywordVariants": [
+    "corgi coloring book for adults",
+    "cottagecore corgi coloring book",
+    "seasonal dog coloring book adults",
+    "corgi coloring book easy large print",
+    "cottagecore coloring book animals",
+    "corgi lovers gift coloring book",
+    "farmhouse dog coloring book adults",
+    "corgi coloring book autumn spring winter summer"
+  ],
+  "selection": {
+    "rationale": "This theme wins by stacking two proven demand drivers—dog-breed specificity and cottagecore aesthetics—into one low-competition long-tail keyword ('corgi coloring book' + seasonal cottage themes) rather than competing in the oversaturated generic dog or dark academia/gothic architecture spaces. It's evergreen (four seasonal sub-volumes possible), easy to execute as true bold/easy line art (a corgi + simple cottage/garden background) without the rendering difficulty of architectural interiors or stained glass, and taps a devoted breed fanbase with strong gifting behavior. It offers the best balance of differentiation, feasible production simplicity, and repeatable series potential of all five candidates.",
+    "rankings": [
+      {
+        "theme": "Corgi portraits in seasonal cottagecore settings",
+        "score": 85,
+        "rationale": "Combines two proven high-demand pulls: dog-breed specificity (corgis have an outsized, devoted fanbase relative to their niche size) and cottagecore aesthetics (soft, whimsical, broadly appealing to the core adult coloring book buyer demographic of women 30-65). Breed-specific coloring books consistently perform well on KDP because owners search their exact breed name, giving a low-competition long-tail keyword funnel ('corgi coloring book' vs generic 'dog coloring book'). Layering seasonal settings (autumn pumpkins, spring gardens, cozy winter cottages) adds evergreen re-purposing potential for multiple volumes/seasonal launches without redesigning the core subject. Bold & Easy line art of a corgi in a flower field or cottage garden is simple to execute at scale, keeps line weight thick for the low-vision/relaxation audience, and avoids the architectural complexity of cathedral or library interiors. Competition exists but is fragmented across breeds and rarely combines breed+aesthetic niche, leaving room for a well-branded series. Strong gifting angle (corgi owners buy for themselves and as gifts) further supports evergreen sales velocity."
+      },
+      {
+        "theme": "Golden retriever breed portraits with floral wreaths",
+        "score": 72,
+        "rationale": "Golden retrievers are extremely popular, but that popularity cuts both ways: it's one of the most saturated breeds in pet coloring book listings already, so differentiation is harder despite strong search volume. Floral wreath framing is a nice bold/easy-friendly motif and evergreen, but without a distinct sub-aesthetic twist (like cottagecore's seasonal storytelling) it risks blending into existing generic 'dog coloring book' listings. Still a solid, low-risk evergreen pick, just less of a blue-ocean opportunity than corgis."
+      },
+      {
+        "theme": "Pagan wheel-of-the-year altars with seasonal herbs and candles",
+        "score": 68,
+        "rationale": "Witchy/pagan is a genuinely underserved niche with a passionate, growing audience (witchtok, cottage witch aesthetic crossover) and strong gifting/self-purchase intent around sabbats. Wheel-of-the-Year gives a natural 8-image or expandable structure that's great for series planning. Risk: altar/still-life scenes with herbs and candles can drift into more intricate illustration territory that's harder to keep truly 'bold and easy' without losing thematic richness, and the audience, while devoted, is smaller than dog or cottagecore buyers. Strong differentiation and low competition offset the smaller TAM."
+      },
+      {
+        "theme": "Dark academia library interiors with candlelit reading nooks",
+        "score": 60,
+        "rationale": "Dark academia has cult aesthetic appeal (booktok, moody academia Pinterest boards) but skews younger and more toward journaling/aesthetic Pinterest boards than the core coloring-book-buying demo. Interior architectural scenes (bookshelves, desks, perspective lines) are inherently harder to render as bold/easy without becoming busy or losing the 'easy' promise, which could hurt the accessibility angle that sells this line. Evergreen but more niche-locked without seasonal/series flexibility."
+      },
+      {
+        "theme": "Gothic cathedral windows with ivy and moths",
+        "score": 55,
+        "rationale": "Beautiful and distinctive imagery with strong witchy/dark-academia crossover appeal, but stained-glass and architectural window motifs are difficult to translate into simple bold line art without becoming either too sparse or too intricate. Narrower audience appeal than corgis/cottagecore, and less obvious series/seasonal extension logic (limited variation before repetition sets in), making it the weakest evergreen candidate of the five despite good aesthetic differentiation."
+      }
+    ]
+  }
+}
